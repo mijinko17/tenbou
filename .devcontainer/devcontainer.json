@@ -11,7 +11,7 @@
     "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached,readonly",
     "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached,readonly",
-    "source=${localEnv:HOME}/.config/gh,target=/home/node/.config/gh,type=bind,consistency=cached,readonly"
+    "source=${localEnv:HOME}/.config/gh,target=/home/node/.config/gh,type=bind,consistency=cached"
   ],
 
   "remoteEnv": {
