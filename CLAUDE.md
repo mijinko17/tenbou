@@ -26,6 +26,7 @@ mahjong-set-manager/
 │   ├── migrations/    # D1マイグレーションSQL
 │   ├── wrangler.toml
 │   └── package.json
+├── docs/              # 機能仕様（spec-*.md）
 ├── turbo.json
 ├── pnpm-workspace.yaml
 └── package.json       # ルート（pnpm workspace）
