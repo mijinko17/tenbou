@@ -1,18 +1,35 @@
 import { describe, expect, it } from "vitest";
 import app from "./index";
 
+const d1Result = {
+	results: [],
+	success: true,
+	meta: {
+		changes: 1,
+		last_row_id: 0,
+		served_by: "mock",
+		duration: 0,
+		size_after: 0,
+		rows_read: 0,
+		rows_written: 1,
+		changed_db: true,
+	},
+};
+
 const mockDB = {
 	prepare: (_sql: string) => ({
 		bind: (..._args: unknown[]) => ({
 			first: async () => null,
-			all: async () => ({ results: [], success: true, meta: {} }),
-			run: async () => ({ success: true, meta: {} }),
+			all: async () => ({ results: [], success: true, meta: d1Result.meta }),
+			run: async () => d1Result,
+			raw: async () => [],
 		}),
 		first: async () => null,
-		all: async () => ({ results: [], success: true, meta: {} }),
-		run: async () => ({ success: true, meta: {} }),
+		all: async () => ({ results: [], success: true, meta: d1Result.meta }),
+		run: async () => d1Result,
+		raw: async () => [],
 	}),
-	batch: async (_statements: unknown[]) => [],
+	batch: async (statements: unknown[]) => statements.map(() => d1Result),
 	exec: async (_sql: string) => ({ count: 0, duration: 0 }),
 	dump: async () => new ArrayBuffer(0),
 } as unknown as D1Database;

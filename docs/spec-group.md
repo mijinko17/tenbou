@@ -36,14 +36,14 @@
 CREATE TABLE groups (
   id          TEXT PRIMARY KEY,  -- UUID v4
   name        TEXT NOT NULL,
-  rate        INTEGER NOT NULL DEFAULT 50,  -- 1スコアあたりのG数（例: 50 → スコア1=50G）
-  chip_rate   INTEGER NOT NULL DEFAULT 2,   -- チップ1枚あたりのスコア（例: 2 → 1枚=2スコア=2000点）
-  uma_1       INTEGER NOT NULL DEFAULT 20,  -- 1着ウマ（スコア）
-  uma_2       INTEGER NOT NULL DEFAULT 10,  -- 2着ウマ（スコア）
-  uma_3       INTEGER NOT NULL DEFAULT -10, -- 3着ウマ（スコア）
-  uma_4       INTEGER NOT NULL DEFAULT -20, -- 4着ウマ（スコア）
-  genten      INTEGER NOT NULL DEFAULT 25,  -- 原点（スコア、例: 25 → 25000点）
-  kaeshi      INTEGER NOT NULL DEFAULT 30,  -- 返し（スコア、例: 30 → 30000点）
+  rate        INTEGER NOT NULL DEFAULT 50,    -- 1000点あたりのG数（例: 50 → 1000点=50G）
+  chip_rate   INTEGER NOT NULL DEFAULT 2000,  -- チップ1枚あたりの点数（例: 2000 → 1枚=2000点）
+  uma_1       INTEGER NOT NULL DEFAULT 20,    -- 1着ウマ（スコア）
+  uma_2       INTEGER NOT NULL DEFAULT 10,    -- 2着ウマ（スコア）
+  uma_3       INTEGER NOT NULL DEFAULT -10,   -- 3着ウマ（スコア）
+  uma_4       INTEGER NOT NULL DEFAULT -20,   -- 4着ウマ（スコア）
+  genten      INTEGER NOT NULL DEFAULT 25000, -- 原点（点数、例: 25000点）
+  kaeshi      INTEGER NOT NULL DEFAULT 30000, -- 返し（点数、例: 30000点）
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 -- 制約: uma_1 + uma_2 + uma_3 + uma_4 = 0
@@ -72,8 +72,8 @@ CREATE TABLE sessions (
 );
 ```
 
-> オカの計算: `(kaeshi - genten) × 4` → 1着に加算（5人セット時も4人固定）
-> （例: 原点25・返し30 → オカ = (30-25)×4 = 20スコア）
+> オカの計算: `(kaeshi - genten) / 1000 × 4` → 1着に加算（5人セット時も4人固定）
+> （例: 原点25000・返し30000 → オカ = (30000-25000)/1000×4 = 20スコア）
 >
 > TODO: インデックス設計
 
@@ -93,10 +93,10 @@ POST /groups?key={CREATION_PASSWORD}
   "name": "グループ名",
   "players": ["Alice", "Bob", "Charlie", "Dave"],
   "rate": 50,
-  "chipRate": 2,
+  "chipRate": 2000,
   "uma": [20, 10, -10, -20],
-  "genten": 25,
-  "kaeshi": 30
+  "genten": 25000,
+  "kaeshi": 30000
 }
 ```
 
@@ -137,9 +137,9 @@ DELETE /groups/{groupId}/players/{playerId}
    - グループ名入力
    - 参加者名（4〜5人）入力
    - レート設定（スコア1 = X G）
-   - チップレート設定（1枚 = X スコア）
+   - チップレート設定（1枚 = X 点）
    - ウマ設定: プリセット選択（10-20 / 10-30）またはカスタム（1〜4着を個別入力、スコア単位）
-   - 原点・返し設定（デフォルト: 原点25・返し30、スコア単位）
+   - 原点・返し設定（デフォルト: 原点25000・返し30000、点数単位）
    - 送信 → 招待リンクを表示
 
 2. **招待リンク受け取り画面** `/invite/{token}`
