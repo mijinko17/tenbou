@@ -55,7 +55,6 @@ pnpm format           # Biome format
 ## アーキテクチャ上の決定事項
 
 - 認証: 招待リンク方式（UUID v4トークン）+ HttpOnly Cookie（有効期限7日）
-- グループ作成の保護: 静的パスワード（クエリパラメータ `?key=xxx`）
 - レートリミット: Cloudflare WAFで対応（アプリ側では実装しない）
 - セッション管理: D1の `sessions` テーブルで管理（Redisは使わない）
 
@@ -83,3 +82,13 @@ pnpm format           # Biome format
 | スキル | `.claude/skills/` |
 | フック | `.claude/hooks/hooks.json` |
 | メモリ | `progress.md` |
+
+## スキル一覧
+
+| スキル | ファイル | 説明 |
+|---|---|---|
+| check-ci | `.claude/skills/check-ci.md` | GitHub Actions の確認と失敗修正 |
+
+## push 前の必須チェック
+
+コードを push したら **必ず `check-ci` スキルを実行**し、CI が全ジョブ成功することを確認する。
