@@ -25,6 +25,8 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          PUBLIC_API_URL: https://tenbou-backend.workers.dev
 
       - name: Test
         run: pnpm test
