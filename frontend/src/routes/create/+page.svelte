@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { page } from "$app/stores";
 	import { API_URL } from "$lib/api";
 	import { Button } from "$lib/components/ui/button";
 	import { Input } from "$lib/components/ui/input";
@@ -7,8 +6,6 @@
 	import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	import { RadioGroup, RadioGroupItem } from "$lib/components/ui/radio-group";
 	import { InputGroup, InputGroupAddon, InputGroupInput } from "$lib/components/ui/input-group";
-
-	const key = $derived($page.url.searchParams.get("key") ?? "");
 
 	let groupName = $state("");
 	let players = $state(["", "", "", ""]);
@@ -32,14 +29,14 @@
 	);
 
 	const inviteUrl = $derived(
-		inviteToken ? `${$page.url.origin}/invite/${inviteToken}` : "",
+		inviteToken ? `${location.origin}/invite/${inviteToken}` : "",
 	);
 
 	async function submit() {
 		errorMsg = null;
 		loading = true;
 		try {
-			const res = await fetch(`${API_URL}/groups?key=${encodeURIComponent(key)}`, {
+			const res = await fetch(`${API_URL}/groups`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				credentials: "include",

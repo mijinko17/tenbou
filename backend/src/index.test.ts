@@ -36,7 +36,6 @@ const mockDB = {
 
 const mockEnv = {
 	DB: mockDB,
-	CREATION_PASSWORD: "test-password",
 };
 
 describe("GET /", () => {
@@ -58,35 +57,9 @@ describe("POST /groups", () => {
 		kaeshi: 30,
 	};
 
-	it("returns 401 when key is missing", async () => {
-		const res = await app.request(
-			"/groups",
-			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(validBody),
-			},
-			mockEnv,
-		);
-		expect(res.status).toBe(401);
-	});
-
-	it("returns 401 when key is wrong", async () => {
-		const res = await app.request(
-			"/groups?key=wrong",
-			{
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(validBody),
-			},
-			mockEnv,
-		);
-		expect(res.status).toBe(401);
-	});
-
 	it("returns 400 when uma sum != 0", async () => {
 		const res = await app.request(
-			"/groups?key=test-password",
+			"/groups",
 			{
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -99,7 +72,7 @@ describe("POST /groups", () => {
 
 	it("returns 400 when too few players", async () => {
 		const res = await app.request(
-			"/groups?key=test-password",
+			"/groups",
 			{
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -113,9 +86,9 @@ describe("POST /groups", () => {
 		expect(res.status).toBe(400);
 	});
 
-	it("returns 201 with valid body and correct key", async () => {
+	it("returns 201 with valid body", async () => {
 		const res = await app.request(
-			"/groups?key=test-password",
+			"/groups",
 			{
 				method: "POST",
 				headers: { "Content-Type": "application/json" },

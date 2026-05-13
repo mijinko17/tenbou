@@ -9,7 +9,6 @@ import * as schema from "./db/schema";
 
 type Env = {
 	DB: D1Database;
-	CREATION_PASSWORD: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();
@@ -45,10 +44,6 @@ const createGroupSchema = z.object({
 });
 
 app.post("/groups", zValidator("json", createGroupSchema), async (c) => {
-	if (c.req.query("key") !== c.env.CREATION_PASSWORD) {
-		return c.json({ error: "Unauthorized" }, 401);
-	}
-
 	const body = c.req.valid("json");
 	const db = drizzle(c.env.DB);
 
