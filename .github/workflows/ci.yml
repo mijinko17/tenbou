@@ -103,4 +103,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: backend
-          command: pages deploy ../frontend/build --project-name=tenbou
+          command: pages deploy ../frontend/build --project-name=tenbou --commit-message="${{ github.sha }}"
