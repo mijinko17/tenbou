@@ -2,3 +2,12 @@ name = "tenbou-backend"
 main = "src/index.ts"
 compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
+
+# TODO: run `wrangler d1 create tenbou` and replace this ID
+[[d1_databases]]
+binding = "DB"
+database_name = "tenbou"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+[vars]
+CREATION_PASSWORD = "changeme"

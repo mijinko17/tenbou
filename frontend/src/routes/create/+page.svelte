@@ -1,0 +1,185 @@
+<script lang="ts">
+	import { page } from "$app/stores";
+	import { API_URL } from "$lib/api";
+	import { Button } from "$lib/components/ui/button";
+	import { Input } from "$lib/components/ui/input";
+	import { Label } from "$lib/components/ui/label";
+	import { Alert, AlertDescription } from "$lib/components/ui/alert";
+	import { RadioGroup, RadioGroupItem } from "$lib/components/ui/radio-group";
+	import { InputGroup, InputGroupAddon, InputGroupInput } from "$lib/components/ui/input-group";
+
+	const key = $derived($page.url.searchParams.get("key") ?? "");
+
+	let groupName = $state("");
+	let players = $state(["", "", "", ""]);
+	let rate = $state(50);
+	let chipRate = $state(2000);
+	let umaPreset = $state<"10-20" | "10-30" | "custom">("10-20");
+	let umaCustom = $state([20, 10, -10, -20]);
+	let genten = $state(25000);
+	let kaeshi = $state(30000);
+
+	let inviteToken = $state<string | null>(null);
+	let errorMsg = $state<string | null>(null);
+	let loading = $state(false);
+
+	const uma = $derived(
+		umaPreset === "10-20"
+			? ([20, 10, -10, -20] as [number, number, number, number])
+			: umaPreset === "10-30"
+				? ([30, 10, -10, -30] as [number, number, number, number])
+				: (umaCustom as [number, number, number, number]),
+	);
+
+	const inviteUrl = $derived(
+		inviteToken ? `${$page.url.origin}/invite/${inviteToken}` : "",
+	);
+
+	async function submit() {
+		errorMsg = null;
+		loading = true;
+		try {
+			const res = await fetch(`${API_URL}/groups?key=${encodeURIComponent(key)}`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({
+					name: groupName,
+					players: players.map((p) => p.trim()).filter(Boolean),
+					rate,
+					chipRate,
+					uma,
+					genten,
+					kaeshi,
+				}),
+			});
+
+			const data = (await res.json()) as {
+				groupId?: string;
+				inviteToken?: string;
+				error?: string;
+			};
+			if (!res.ok) {
+				errorMsg = data.error ?? "エラーが発生しました";
+				return;
+			}
+			inviteToken = data.inviteToken ?? null;
+		} catch {
+			errorMsg = "通信エラーが発生しました";
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function copyLink() {
+		await navigator.clipboard.writeText(inviteUrl);
+	}
+</script>
+
+<main class="mx-auto max-w-lg px-4 py-8">
+	<h1 class="mb-6 text-2xl font-bold">グループ作成</h1>
+
+	{#if inviteToken}
+		<div class="rounded-lg border border-green-200 bg-green-50 p-4 space-y-3">
+			<p class="font-semibold text-green-800">グループを作成しました！</p>
+			<p class="text-sm text-green-700">招待リンクを参加者に共有してください:</p>
+			<p class="rounded bg-white border px-3 py-2 font-mono text-sm break-all">
+				{inviteUrl}
+			</p>
+			<Button variant="outline" size="sm" onclick={copyLink}>リンクをコピー</Button>
+		</div>
+	{:else}
+		<form onsubmit={(e) => { e.preventDefault(); submit(); }} class="space-y-6">
+			<div class="space-y-1.5">
+				<Label for="group-name">グループ名</Label>
+				<Input
+					id="group-name"
+					bind:value={groupName}
+					type="text"
+					maxlength={30}
+					required
+					placeholder="例: 週末麻雀メンバー"
+				/>
+			</div>
+
+			<fieldset class="space-y-2">
+				<legend class="text-sm font-medium mb-2">参加者</legend>
+				{#each players as _, i}
+					<Input
+						bind:value={players[i]}
+						type="text"
+						maxlength={10}
+						required
+						placeholder={`参加者${i + 1}`}
+					/>
+				{/each}
+			</fieldset>
+
+			<div class="space-y-1.5">
+				<Label for="rate">レート</Label>
+				<InputGroup>
+					<InputGroupAddon>1000点 =</InputGroupAddon>
+					<InputGroupInput id="rate" bind:value={rate} type="number" min={1} required />
+					<InputGroupAddon align="inline-end">G</InputGroupAddon>
+				</InputGroup>
+			</div>
+
+			<div class="space-y-1.5">
+				<Label for="chip-rate">チップ</Label>
+				<InputGroup>
+					<InputGroupAddon>1枚 =</InputGroupAddon>
+					<InputGroupInput id="chip-rate" bind:value={chipRate} type="number" min={1} required />
+					<InputGroupAddon align="inline-end">点</InputGroupAddon>
+				</InputGroup>
+			</div>
+
+			<div class="space-y-1.5">
+				<Label for="genten">原点</Label>
+				<InputGroup>
+					<InputGroupInput id="genten" bind:value={genten} type="number" min={1} required />
+					<InputGroupAddon align="inline-end">点</InputGroupAddon>
+				</InputGroup>
+			</div>
+
+			<div class="space-y-1.5">
+				<Label for="kaeshi">返し</Label>
+				<InputGroup>
+					<InputGroupInput id="kaeshi" bind:value={kaeshi} type="number" min={1} required />
+					<InputGroupAddon align="inline-end">点</InputGroupAddon>
+				</InputGroup>
+			</div>
+
+			<fieldset class="space-y-2">
+				<legend class="text-sm font-medium mb-2">ウマ</legend>
+				<RadioGroup bind:value={umaPreset} class="flex gap-6">
+					{#each (["10-20", "10-30", "custom"] as const) as preset}
+						<div class="flex items-center gap-2">
+							<RadioGroupItem value={preset} id="uma-{preset}" />
+							<Label for="uma-{preset}">{preset === "custom" ? "カスタム" : preset}</Label>
+						</div>
+					{/each}
+				</RadioGroup>
+				{#if umaPreset === "custom"}
+					<div class="grid grid-cols-4 gap-2 mt-2">
+						{#each (["1着", "2着", "3着", "4着"] as const) as rankLabel, i}
+							<div class="space-y-1">
+								<Label for="uma-{i}" class="text-xs">{rankLabel}</Label>
+								<Input id="uma-{i}" bind:value={umaCustom[i]} type="number" />
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</fieldset>
+
+			{#if errorMsg}
+				<Alert variant="destructive">
+					<AlertDescription>{errorMsg}</AlertDescription>
+				</Alert>
+			{/if}
+
+			<Button type="submit" disabled={loading} class="w-full py-6">
+				{loading ? "作成中..." : "グループを作成"}
+			</Button>
+		</form>
+	{/if}
+</main>

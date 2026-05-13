@@ -27,14 +27,21 @@
 
 ---
 
+## 実装済み（グループ作成機能）
+
+- [x] D1 マイグレーション（`backend/migrations/0001_initial.sql`）
+- [x] `POST /groups` — グループ作成（`?key=` による保護）
+- [x] `GET /invite/:token` — 招待リンク情報取得
+- [x] `POST /invite/:token` — 参加（既存プレイヤー選択 or 新規追加）+ セッション発行
+- [x] `DELETE /groups/:groupId/players/:playerId` — 参加者自身の脱退
+- [x] フロントエンド `/create` — グループ作成ページ
+- [x] フロントエンド `/invite/[token]` — 招待リンク参加ページ
+
 ## 未実装（これから作る機能）
 
-- [ ] DB スキーマ設計（D1）
-- [ ] 認証（招待リンク + HttpOnly Cookie）
-- [ ] グループ管理 API
 - [ ] 対局記録 API
 - [ ] 精算計算ロジック
-- [ ] フロントエンド UI
+- [ ] ダッシュボード UI（参加後のトップ画面）
 
 ---
 
@@ -48,6 +55,22 @@
 | CD デプロイ方法 | `wrangler-action` の `workingDirectory: backend` から両方デプロイ |
 | Pages プロジェクト名 | `tenbou` |
 | Workers 名 | `tenbou-backend` |
+
+## D1 初回セットアップ手順（デプロイ前に1回だけ必要）
+
+```bash
+# 1. D1 データベースを作成（出力された database_id を控える）
+cd backend && pnpm exec wrangler d1 create tenbou
+
+# 2. backend/wrangler.toml の database_id を置き換える
+#    "00000000-0000-0000-0000-000000000000" → 実際の ID
+
+# 3. ローカルでマイグレーション適用（wrangler dev 用）
+pnpm exec wrangler d1 migrations apply tenbou --local
+
+# 4. CREATION_PASSWORD を本番用シークレットに変更
+pnpm exec wrangler secret put CREATION_PASSWORD
+```
 
 ## 既知の注意点
 
