@@ -15,7 +15,9 @@
   ],
 
   "remoteEnv": {
-    "SSH_AUTH_SOCK": "${localEnv:SSH_AUTH_SOCK}"
+    "SSH_AUTH_SOCK": "${localEnv:SSH_AUTH_SOCK}",
+    "CLOUDFLARE_API_TOKEN": "${localEnv:CLOUDFLARE_API_TOKEN}",
+    "CLOUDFLARE_ACCOUNT_ID": "${localEnv:CLOUDFLARE_ACCOUNT_ID}"
   },
 
   "postCreateCommand": "sudo corepack enable && corepack prepare pnpm@latest --activate && pnpm install",
