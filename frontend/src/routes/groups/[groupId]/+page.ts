@@ -4,9 +4,7 @@ import type { PageLoad } from "./$types";
 export const ssr = false;
 
 export const load: PageLoad = async ({ params, fetch }) => {
-	const res = await fetch(`${API_URL}/groups/${params.groupId}`, {
-		credentials: "include",
-	});
+	const res = await fetch(`${API_URL}/groups/${params.groupId}`);
 	if (!res.ok) {
 		const json = (await res.json().catch(() => ({}))) as { error?: string };
 		return {
