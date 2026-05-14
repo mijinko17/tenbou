@@ -39,6 +39,7 @@ const createGroupSchema = z.object({
 			(arr) => arr.reduce((a, b) => a + b, 0) === 0,
 			"ウマの合計は0である必要があります",
 		),
+	tobi: z.number().int().nonnegative().default(10),
 	genten: z.number().int().positive(),
 	kaeshi: z.number().int().positive(),
 });
@@ -64,6 +65,7 @@ app.post("/groups", zValidator("json", createGroupSchema), async (c) => {
 			uma_2: body.uma[1],
 			uma_3: body.uma[2],
 			uma_4: body.uma[3],
+			tobi: body.tobi,
 			genten: body.genten,
 			kaeshi: body.kaeshi,
 		}),

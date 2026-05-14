@@ -10,6 +10,7 @@ export const groups = sqliteTable("groups", {
 	uma_2: integer("uma_2").notNull().default(10),
 	uma_3: integer("uma_3").notNull().default(-10),
 	uma_4: integer("uma_4").notNull().default(-20),
+	tobi: integer("tobi").notNull().default(10),
 	genten: integer("genten").notNull().default(25000),
 	kaeshi: integer("kaeshi").notNull().default(30000),
 	created_at: text("created_at").notNull().default(sql`(datetime('now'))`),

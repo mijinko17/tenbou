@@ -64,7 +64,9 @@ pnpm db:migrate:local  # ローカル D1 にマイグレーションを適用
 - スキーマ定義: `backend/src/db/schema.ts`
 - マイグレーション出力先: `backend/migrations/`
 - 設定ファイル: `backend/drizzle.config.ts`
-- テーブル変更時は必ず `pnpm db:generate` でマイグレーションファイルを生成してからコミットする
+- テーブル変更時は必ず `pnpm db:generate --name <名前>` でマイグレーションファイルを生成してからコミットする（`--name` 省略禁止）
+- マイグレーションファイルを手動で作成・変更・削除してはいけない
+- 既存のマイグレーションファイルは変更しない（追加のみ）
 - スキーマを直接 SQL で変更してはいけない（`schema.ts` を正とする）
 
 ## アーキテクチャ上の決定事項

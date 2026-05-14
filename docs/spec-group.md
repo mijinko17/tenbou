@@ -42,6 +42,7 @@ CREATE TABLE groups (
   uma_2       INTEGER NOT NULL DEFAULT 10,    -- 2着ウマ（スコア）
   uma_3       INTEGER NOT NULL DEFAULT -10,   -- 3着ウマ（スコア）
   uma_4       INTEGER NOT NULL DEFAULT -20,   -- 4着ウマ（スコア）
+  tobi        INTEGER NOT NULL DEFAULT 10,    -- トビ賞（スコア単位。トビを起こした者が支払う）
   genten      INTEGER NOT NULL DEFAULT 25000, -- 原点（点数、例: 25000点）
   kaeshi      INTEGER NOT NULL DEFAULT 30000, -- 返し（点数、例: 30000点）
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
@@ -95,6 +96,7 @@ POST /groups?key={CREATION_PASSWORD}
   "rate": 50,
   "chipRate": 2000,
   "uma": [20, 10, -10, -20],
+  "tobi": 10,
   "genten": 25000,
   "kaeshi": 30000
 }
@@ -139,6 +141,7 @@ DELETE /groups/{groupId}/players/{playerId}
    - レート設定（スコア1 = X G）
    - チップレート設定（1枚 = X 点）
    - ウマ設定: プリセット選択（10-20 / 10-30）またはカスタム（1〜4着を個別入力、スコア単位）
+   - トビ賞設定（デフォルト: 10、スコア単位）
    - 原点・返し設定（デフォルト: 原点25000・返し30000、点数単位）
    - 送信 → 招待リンクを表示
 

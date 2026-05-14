@@ -13,6 +13,7 @@
 	let chipRate = $state(2000);
 	let umaPreset = $state<"10-20" | "10-30" | "custom">("10-20");
 	let umaCustom = $state([20, 10, -10, -20]);
+	let tobi = $state(10);
 	let genten = $state(25000);
 	let kaeshi = $state(30000);
 
@@ -46,6 +47,7 @@
 					rate,
 					chipRate,
 					uma,
+					tobi,
 					genten,
 					kaeshi,
 				}),
@@ -167,6 +169,11 @@
 					</div>
 				{/if}
 			</fieldset>
+
+			<div class="space-y-1.5">
+				<Label for="tobi">トビ賞</Label>
+				<Input id="tobi" bind:value={tobi} type="number" min={0} required />
+			</div>
 
 			{#if errorMsg}
 				<Alert variant="destructive">

@@ -1,0 +1,1 @@
+ALTER TABLE `groups` ADD `tobi` integer DEFAULT 10 NOT NULL;
