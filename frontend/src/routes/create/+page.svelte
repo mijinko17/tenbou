@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
 	import { API_URL } from "$lib/api";
+	import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	import { Button } from "$lib/components/ui/button";
 	import { Input } from "$lib/components/ui/input";
-	import { Label } from "$lib/components/ui/label";
-	import { Alert, AlertDescription } from "$lib/components/ui/alert";
-	import { RadioGroup, RadioGroupItem } from "$lib/components/ui/radio-group";
 	import { InputGroup, InputGroupAddon, InputGroupInput } from "$lib/components/ui/input-group";
+	import { Label } from "$lib/components/ui/label";
+	import { RadioGroup, RadioGroupItem } from "$lib/components/ui/radio-group";
 
 	let groupName = $state("");
 	let players = $state(["", "", "", ""]);
@@ -17,6 +18,7 @@
 	let genten = $state(25000);
 	let kaeshi = $state(30000);
 
+	let groupId = $state<string | null>(null);
 	let inviteToken = $state<string | null>(null);
 	let errorMsg = $state<string | null>(null);
 	let loading = $state(false);
@@ -31,6 +33,9 @@
 
 	const inviteUrl = $derived(
 		inviteToken ? `${location.origin}/invite/${inviteToken}` : "",
+	);
+	const dashboardUrl = $derived(
+		groupId ? `${location.origin}/groups/${groupId}` : "",
 	);
 
 	async function submit() {
@@ -62,6 +67,7 @@
 				errorMsg = data.error ?? "エラーが発生しました";
 				return;
 			}
+			groupId = data.groupId ?? null;
 			inviteToken = data.inviteToken ?? null;
 		} catch {
 			errorMsg = "通信エラーが発生しました";
@@ -78,14 +84,19 @@
 <main class="mx-auto max-w-lg px-4 py-8">
 	<h1 class="mb-6 text-2xl font-bold">グループ作成</h1>
 
-	{#if inviteToken}
-		<div class="rounded-lg border border-green-200 bg-green-50 p-4 space-y-3">
+	{#if groupId}
+		<div class="rounded-lg border border-green-200 bg-green-50 p-4 space-y-4">
 			<p class="font-semibold text-green-800">グループを作成しました！</p>
-			<p class="text-sm text-green-700">招待リンクを参加者に共有してください:</p>
-			<p class="rounded bg-white border px-3 py-2 font-mono text-sm break-all">
-				{inviteUrl}
-			</p>
-			<Button variant="outline" size="sm" onclick={copyLink}>リンクをコピー</Button>
+
+			<div class="space-y-1">
+				<p class="text-sm text-green-700">ダッシュボード:</p>
+				<p class="rounded bg-white border px-3 py-2 font-mono text-sm break-all">{dashboardUrl}</p>
+			</div>
+
+			<div class="flex gap-2">
+				<Button onclick={() => goto(`/groups/${groupId}`)}>ダッシュボードへ</Button>
+				<Button variant="outline" onclick={copyLink}>招待リンクをコピー</Button>
+			</div>
 		</div>
 	{:else}
 		<form onsubmit={(e) => { e.preventDefault(); submit(); }} class="space-y-6">
