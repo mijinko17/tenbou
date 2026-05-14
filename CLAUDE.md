@@ -80,7 +80,8 @@ pnpm format           # Biome format
 |---|---|
 | ルール | `.claude/rules/` |
 | スキル | `.claude/skills/` |
-| フック | `.claude/hooks/hooks.json` |
+| フック設定 | `.claude/settings.json` の `hooks` キー |
+| フックスクリプト | `.claude/hooks/` |
 | メモリ | `progress.md` |
 
 ## スキル一覧
@@ -91,4 +92,6 @@ pnpm format           # Biome format
 
 ## push 前の必須チェック
 
-コードを push したら **必ず `check-ci` スキルを実行**し、CI が全ジョブ成功することを確認する。
+`git push` 実行前に `PreToolUse` フック（`.claude/hooks/pre-push-check.sh`）が自動的に biome ci → build → test を実行し、失敗時は push をブロックする。
+
+push 後に GitHub Actions の結果も確認したい場合は `check-ci` スキルを実行する。
