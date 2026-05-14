@@ -367,35 +367,6 @@ app.post(
 		const body = c.req.valid("json");
 		const db = drizzle(c.env.DB);
 
-		const sessionToken = getCookie(c, "session");
-		if (!sessionToken) return c.json({ error: "Unauthorized" }, 401);
-
-		const [session] = await db
-			.select({ player_id: schema.sessions.player_id })
-			.from(schema.sessions)
-			.where(
-				and(
-					eq(schema.sessions.token, sessionToken),
-					gt(schema.sessions.expires_at, sql`datetime('now')`),
-				),
-			)
-			.limit(1);
-
-		if (!session) return c.json({ error: "Unauthorized" }, 401);
-
-		const [currentPlayer] = await db
-			.select({ id: schema.players.id })
-			.from(schema.players)
-			.where(
-				and(
-					eq(schema.players.id, session.player_id),
-					eq(schema.players.group_id, groupId),
-				),
-			)
-			.limit(1);
-
-		if (!currentPlayer) return c.json({ error: "Forbidden" }, 403);
-
 		const [group] = await db
 			.select()
 			.from(schema.groups)

@@ -167,7 +167,6 @@
 			const res = await fetch(`${API_URL}/groups/${groupId}/rounds`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				credentials: "include",
 				body: JSON.stringify(body),
 			});
 
