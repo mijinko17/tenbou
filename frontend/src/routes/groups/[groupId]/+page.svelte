@@ -4,6 +4,7 @@
 	import { API_URL } from "$lib/api";
 	import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
 	import ChevronUpIcon from "@lucide/svelte/icons/chevron-up";
+	import InfoIcon from "@lucide/svelte/icons/info";
 	import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	import { Button } from "$lib/components/ui/button";
 	import * as InputGroup from "$lib/components/ui/input-group";
@@ -43,6 +44,8 @@
 	}>();
 
 	const groupId = $derived($page.params.groupId);
+
+	let showSettings = $state(false);
 
 	// 成績登録フォーム
 	let showForm = $state(false);
@@ -193,14 +196,35 @@
 		</Alert>
 	{:else if data.group}
 		<div class="mb-4 flex items-center justify-between">
-			<div>
+			<div class="flex items-center gap-2">
 				<h1 class="text-xl font-bold">{data.group.name}</h1>
-				<p class="text-xs text-muted-foreground">
-					レート: {data.group.rate}G ／ 原点: {data.group.genten} ／ 返し: {data.group.kaeshi}
-				</p>
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					onclick={() => (showSettings = !showSettings)}
+					aria-label="グループ設定を表示"
+				>
+					<InfoIcon class="size-4" />
+				</Button>
 			</div>
 			<Button onclick={openForm} disabled={showForm} class="shrink-0">成績を登録</Button>
 		</div>
+
+		{#if showSettings}
+			<div class="mb-4 rounded-lg border p-4 text-sm">
+				<p class="mb-2 font-semibold">グループ設定</p>
+				<dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
+					<dt>レート</dt><dd class="text-right text-foreground">1000点 = {data.group.rate}G</dd>
+					<dt>原点</dt><dd class="text-right text-foreground">{data.group.genten}点</dd>
+					<dt>返し</dt><dd class="text-right text-foreground">{data.group.kaeshi}点</dd>
+					<dt>ウマ（1着）</dt><dd class="text-right text-foreground">{data.group.uma_1}</dd>
+					<dt>ウマ（2着）</dt><dd class="text-right text-foreground">{data.group.uma_2}</dd>
+					<dt>ウマ（3着）</dt><dd class="text-right text-foreground">{data.group.uma_3}</dd>
+					<dt>ウマ（4着）</dt><dd class="text-right text-foreground">{data.group.uma_4}</dd>
+					<dt>飛び賞</dt><dd class="text-right text-foreground">{data.group.tobi}</dd>
+				</dl>
+			</div>
+		{/if}
 
 		{#if showForm}
 			<div class="mb-6 rounded-lg border p-4">
