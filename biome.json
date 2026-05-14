@@ -11,7 +11,8 @@
 			".devcontainer/**",
 			".pnpm-store/**",
 			".turbo/**",
-			"pnpm-lock.yaml"
+			"pnpm-lock.yaml",
+			"**/migrations/meta/**"
 		]
 	},
 	"organizeImports": {
