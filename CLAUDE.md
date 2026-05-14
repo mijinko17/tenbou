@@ -42,15 +42,30 @@ pnpm lint             # Biome lint
 pnpm format           # Biome format
 ```
 
+```bash
+# backend ディレクトリ内で実行
+pnpm db:generate       # schema.ts の変更からマイグレーションファイルを生成
+pnpm db:migrate:local  # ローカル D1 にマイグレーションを適用
+```
+
 ## 技術スタック
 
 - **フロントエンド**: SvelteKit (adapter-static) + TypeScript + Skeleton v3（UIコンポーネント）+ Tailwind CSS
 - **APIサーバー**: Cloudflare Workers + Hono
 - **DB**: Cloudflare D1（SQLite）
+- **ORM**: Drizzle ORM（`drizzle-orm`）
 - **ホスティング**: Cloudflare Pages
 - **テスト**: Vitest
 - **フォーマット・Lint**: Biome
 - **モノレポ管理**: Turborepo + pnpm workspaces
+
+## ORM（Drizzle ORM）
+
+- スキーマ定義: `backend/src/db/schema.ts`
+- マイグレーション出力先: `backend/migrations/`
+- 設定ファイル: `backend/drizzle.config.ts`
+- テーブル変更時は必ず `pnpm db:generate` でマイグレーションファイルを生成してからコミットする
+- スキーマを直接 SQL で変更してはいけない（`schema.ts` を正とする）
 
 ## アーキテクチャ上の決定事項
 
