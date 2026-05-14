@@ -21,7 +21,9 @@ function computeRoundScores(
 
 	const ordered = rankOrder
 		? rankOrder
-		: [...results].sort((a, b) => b.rawPoints - a.rawPoints).map((r) => r.playerId);
+		: [...results]
+				.sort((a, b) => b.rawPoints - a.rawPoints)
+				.map((r) => r.playerId);
 	const rankMap = new Map(ordered.map((id, i) => [id, i]));
 
 	return results.map((r) => {
@@ -355,7 +357,12 @@ app.get("/groups/:groupId", async (c) => {
 			roundNo: round.round_no,
 			playedAt: round.played_at,
 			tobiKillerId: round.tobi_killer_id,
-			results: computeRoundScores(results, group, round.tobi_killer_id, rankOrder),
+			results: computeRoundScores(
+				results,
+				group,
+				round.tobi_killer_id,
+				rankOrder,
+			),
 		};
 	});
 
@@ -430,7 +437,9 @@ app.post(
 		const actualSum = body.results.reduce((s, r) => s + r.rawPoints, 0);
 		if (actualSum !== expectedSum) {
 			return c.json(
-				{ error: `素点の合計が${expectedSum}になっていません（現在: ${actualSum}）` },
+				{
+					error: `素点の合計が${expectedSum}になっていません（現在: ${actualSum}）`,
+				},
 				422,
 			);
 		}
@@ -463,11 +472,18 @@ app.post(
 			const rankSet = new Set(body.rankOrder);
 			const allPresent = body.results.every((r) => rankSet.has(r.playerId));
 			if (!allPresent) {
-				return c.json({ error: "rankOrder に無効なプレイヤーIDが含まれています" }, 422);
+				return c.json(
+					{ error: "rankOrder に無効なプレイヤーIDが含まれています" },
+					422,
+				);
 			}
 			for (let i = 0; i < body.rankOrder.length - 1; i++) {
-				const curr = body.results.find((r) => r.playerId === body.rankOrder?.[i])?.rawPoints ?? 0;
-				const next = body.results.find((r) => r.playerId === body.rankOrder?.[i + 1])?.rawPoints ?? 0;
+				const curr =
+					body.results.find((r) => r.playerId === body.rankOrder?.[i])
+						?.rawPoints ?? 0;
+				const next =
+					body.results.find((r) => r.playerId === body.rankOrder?.[i + 1])
+						?.rawPoints ?? 0;
 				if (curr < next) {
 					return c.json({ error: "順位の指定が点数と矛盾しています" }, 422);
 				}
@@ -477,7 +493,10 @@ app.post(
 		const hasTobi = body.results.some((r) => r.rawPoints < 0);
 		if (hasTobi && !body.tobiKillerId) {
 			return c.json(
-				{ error: "飛んだプレイヤーがいる場合、飛ばしたプレイヤーを指定してください" },
+				{
+					error:
+						"飛んだプレイヤーがいる場合、飛ばしたプレイヤーを指定してください",
+				},
 				422,
 			);
 		}
