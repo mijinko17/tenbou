@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
 export const groups = sqliteTable("groups", {
 	id: text("id").primaryKey(),
@@ -41,3 +41,29 @@ export const sessions = sqliteTable("sessions", {
 		.references(() => players.id),
 	expires_at: text("expires_at").notNull(),
 });
+
+export const game_rounds = sqliteTable("game_rounds", {
+	id: text("id").primaryKey(),
+	group_id: text("group_id")
+		.notNull()
+		.references(() => groups.id),
+	round_no: integer("round_no").notNull(),
+	tobi_killer_id: text("tobi_killer_id").references(() => players.id),
+	rank_order: text("rank_order"), // JSON array of playerIds in rank order (1st→4th). NULL = sort by rawPoints
+	played_at: text("played_at").notNull().default(sql`(datetime('now'))`),
+});
+
+export const game_results = sqliteTable(
+	"game_results",
+	{
+		id: text("id").primaryKey(),
+		round_id: text("round_id")
+			.notNull()
+			.references(() => game_rounds.id),
+		player_id: text("player_id")
+			.notNull()
+			.references(() => players.id),
+		raw_points: integer("raw_points").notNull(),
+	},
+	(table) => [unique().on(table.round_id, table.player_id)],
+);

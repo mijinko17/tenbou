@@ -48,12 +48,12 @@
 				body: JSON.stringify(body),
 			});
 
-			const json = (await res.json()) as { error?: string };
+			const json = (await res.json()) as { error?: string; groupId?: string };
 			if (!res.ok) {
 				errorMsg = json.error ?? "エラーが発生しました";
 				return;
 			}
-			goto("/");
+			goto(`/groups/${json.groupId}`);
 		} catch {
 			errorMsg = "通信エラーが発生しました";
 		} finally {

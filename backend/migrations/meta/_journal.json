@@ -15,6 +15,20 @@
       "when": 1778772157550,
       "tag": "0003_add_tobi",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1778775049811,
+      "tag": "0004_add_game_rounds_and_results",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1778776533291,
+      "tag": "0005_add_rank_order_to_game_rounds",
+      "breakpoints": true
     }
   ]
 }
