@@ -24,6 +24,7 @@
 		id: string;
 		name: string;
 		rate: number;
+		chip_rate: number;
 		uma_1: number;
 		uma_2: number;
 		uma_3: number;
@@ -217,10 +218,8 @@
 					<dt>レート</dt><dd class="text-right text-foreground">1000点 = {data.group.rate}G</dd>
 					<dt>原点</dt><dd class="text-right text-foreground">{data.group.genten}点</dd>
 					<dt>返し</dt><dd class="text-right text-foreground">{data.group.kaeshi}点</dd>
-					<dt>ウマ（1着）</dt><dd class="text-right text-foreground">{data.group.uma_1}</dd>
-					<dt>ウマ（2着）</dt><dd class="text-right text-foreground">{data.group.uma_2}</dd>
-					<dt>ウマ（3着）</dt><dd class="text-right text-foreground">{data.group.uma_3}</dd>
-					<dt>ウマ（4着）</dt><dd class="text-right text-foreground">{data.group.uma_4}</dd>
+					<dt>ウマ</dt><dd class="text-right text-foreground">{data.group.uma_1} / {data.group.uma_2} / {data.group.uma_3} / {data.group.uma_4}</dd>
+					<dt>チップ</dt><dd class="text-right text-foreground">1枚 = {data.group.chip_rate}点</dd>
 					<dt>飛び賞</dt><dd class="text-right text-foreground">{data.group.tobi}</dd>
 				</dl>
 			</div>
