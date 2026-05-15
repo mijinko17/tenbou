@@ -5,12 +5,14 @@
 	import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
 	import ChevronUpIcon from "@lucide/svelte/icons/chevron-up";
 	import InfoIcon from "@lucide/svelte/icons/info";
-	import { Alert, AlertDescription } from "$lib/components/ui/alert";
+import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	import { Button } from "$lib/components/ui/button";
 	import * as InputGroup from "$lib/components/ui/input-group";
 	import { Label } from "$lib/components/ui/label";
 	import * as RadioGroup from "$lib/components/ui/radio-group";
 	import * as Table from "$lib/components/ui/table";
+	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+	import * as Dialog from "$lib/components/ui/dialog";
 
 	type Player = { id: string; name: string };
 	type RoundResult = { playerId: string; rawPoints: number; score: number };
@@ -50,6 +52,16 @@
 
 	let showSettings = $state(false);
 
+	// ドロップダウン閉後に開くアクション
+	let pendingAction = $state<"form" | "chip" | null>(null);
+
+	function handleDropdownClose(open: boolean) {
+		if (open || !pendingAction) return;
+		if (pendingAction === "form") initForm();
+		else initChipForm();
+		pendingAction = null;
+	}
+
 	// チップ入力フォーム
 	let showChipForm = $state(false);
 	let chipInputs = $state<Record<string, string>>({});
@@ -58,7 +70,7 @@
 
 	const hasChips = $derived((data.chips ?? []).length > 0);
 
-	function openChipForm() {
+	function initChipForm() {
 		const existing = Object.fromEntries((data.chips ?? []).map((c: ChipEntry) => [c.playerId, String(c.count)]));
 		chipInputs = Object.fromEntries(
 			(data.players ?? []).map((p: Player) => [p.id, existing[p.id] ?? ""]),
@@ -118,7 +130,7 @@
 	let submitError = $state<string | null>(null);
 	let loading = $state(false);
 
-	function openForm() {
+	function initForm() {
 		rawPointInputs = Object.fromEntries((data.players ?? []).map((p: Player) => [p.id, ""]));
 		rankOrder = (data.players ?? []).map((p: Player) => p.id);
 		tobiKillerId = "";
@@ -283,12 +295,23 @@
 					<InfoIcon class="size-4" />
 				</Button>
 			</div>
-			<div class="flex shrink-0 gap-2">
-				<Button variant="outline" onclick={openChipForm} disabled={showChipForm}>
-					{hasChips ? "チップを編集" : "チップを入力"}
-				</Button>
-				<Button onclick={openForm} disabled={showForm}>成績を登録</Button>
-			</div>
+			<DropdownMenu.Root onOpenChange={handleDropdownClose}>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<Button variant="default" size="sm" {...props}>
+							登録
+						</Button>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content align="end">
+					<DropdownMenu.Item onclick={() => (pendingAction = "form")}>
+						成績登録
+					</DropdownMenu.Item>
+					<DropdownMenu.Item onclick={() => (pendingAction = "chip")}>
+						チップ登録
+					</DropdownMenu.Item>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 		</div>
 
 		{#if showSettings}
@@ -305,10 +328,14 @@
 			</div>
 		{/if}
 
-		{#if showChipForm}
-			<div class="mb-6 rounded-lg border p-4">
-				<Label class="mb-2 block text-base font-semibold">チップ収支</Label>
-				<div class="mb-4 space-y-3">
+		<!-- チップ入力ダイアログ -->
+		<Dialog.Root bind:open={showChipForm}>
+			<Dialog.Content class="max-h-[90dvh] overflow-y-auto">
+				<Dialog.Header>
+					<Dialog.Title>チップ登録</Dialog.Title>
+				</Dialog.Header>
+
+				<div class="space-y-3">
 					{#each data.players as player}
 						<div class="flex items-center gap-3">
 							<Label class="w-20 shrink-0 {player.id === data.currentPlayerId ? 'font-bold' : ''}">
@@ -326,35 +353,35 @@
 					{/each}
 				</div>
 
-				<p class="mb-4 text-sm {chipSumOk ? 'text-green-600' : 'text-muted-foreground'}">
+				<p class="text-sm {chipSumOk ? 'text-green-600' : 'text-muted-foreground'}">
 					合計: {chipSum} / 0
 					{#if chipSumOk}✓{/if}
 				</p>
 
 				{#if chipSubmitError}
-					<Alert variant="destructive" class="mb-4">
+					<Alert variant="destructive">
 						<AlertDescription>{chipSubmitError}</AlertDescription>
 					</Alert>
 				{/if}
 
-				<div class="flex gap-2">
-					<Button
-						variant="outline"
-						onclick={() => (showChipForm = false)}
-						disabled={chipLoading}
-						class="flex-1"
-					>
+				<Dialog.Footer>
+					<Button variant="outline" onclick={() => (showChipForm = false)} disabled={chipLoading} class="flex-1">
 						キャンセル
 					</Button>
 					<Button onclick={submitChips} disabled={chipLoading} class="flex-1">
 						{chipLoading ? "保存中..." : "保存"}
 					</Button>
-				</div>
-			</div>
-		{/if}
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 
-		{#if showForm}
-			<div class="mb-6 rounded-lg border p-4">
+		<!-- 成績登録ダイアログ -->
+		<Dialog.Root bind:open={showForm}>
+			<Dialog.Content class="max-h-[90dvh] overflow-y-auto">
+				<Dialog.Header>
+					<Dialog.Title>成績登録</Dialog.Title>
+				</Dialog.Header>
+
 				<Label class="mb-2 block text-base font-semibold">点数</Label>
 				<div class="mb-4 space-y-3">
 					{#each data.players as player}
@@ -445,23 +472,18 @@
 					</Alert>
 				{/if}
 
-				<div class="flex gap-2">
-					<Button
-						variant="outline"
-						onclick={() => (showForm = false)}
-						disabled={loading}
-						class="flex-1"
-					>
+				<Dialog.Footer>
+					<Button variant="outline" onclick={() => (showForm = false)} disabled={loading} class="flex-1">
 						キャンセル
 					</Button>
 					<Button onclick={submitRound} disabled={loading} class="flex-1">
 						{loading ? "登録中..." : "登録"}
 					</Button>
-				</div>
-			</div>
-		{/if}
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 
-		{#if data.rounds.length === 0 && !showForm}
+		{#if data.rounds.length === 0}
 			<p class="py-12 text-center text-sm text-muted-foreground">
 				まだ成績が登録されていません
 			</p>
