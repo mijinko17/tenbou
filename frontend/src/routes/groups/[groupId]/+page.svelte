@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from "$app/navigation";
-	import { page } from "$app/stores";
+	import { page } from "$app/state";
 	import { API_URL } from "$lib/api";
 	import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
 	import ChevronUpIcon from "@lucide/svelte/icons/chevron-up";
@@ -44,7 +44,7 @@
 		};
 	}>();
 
-	const groupId = $derived($page.params.groupId);
+	const groupId = $derived(page.params.groupId);
 
 	let showSettings = $state(false);
 
@@ -229,8 +229,7 @@
 
 		{#if showForm}
 			<div class="mb-6 rounded-lg border p-4">
-				<h2 class="mb-4 font-semibold">点数</h2>
-
+				<Label class="mb-2 block text-base font-semibold">点数</Label>
 				<div class="mb-4 space-y-3">
 					{#each data.players as player}
 						<div class="flex items-center gap-3">
@@ -255,8 +254,8 @@
 				</p>
 
 				{#if hasTobi}
+					<Label class="mb-2 block text-base font-semibold">飛ばしたプレイヤー</Label>
 					<div class="mb-4">
-						<Label class="mb-2 block font-semibold">飛ばしたプレイヤー</Label>
 						<RadioGroup.Root bind:value={tobiKillerId} class="gap-3">
 							{#each killerCandidates as player}
 								<div class="flex items-center gap-2">
@@ -273,46 +272,44 @@
 				{/if}
 
 				{#if hasTies}
-					<div class="mb-4">
-						<Label class="mb-2 block font-semibold">順位</Label>
-						<div class="space-y-1">
-							{#each rankOrder as playerId, i}
-								{@const player = data.players.find((p: Player) => p.id === playerId)}
-								{@const pts = parsedPoints[playerId]}
-								{@const prevPts = i > 0 ? parsedPoints[rankOrder[i - 1]] : null}
-								{@const nextPts = i < rankOrder.length - 1 ? parsedPoints[rankOrder[i + 1]] : null}
-								{@const isTied = prevPts === pts || nextPts === pts}
-								<div
-									class="flex items-center gap-2 rounded border px-3 py-2 {isTied
-										? 'border-amber-300 bg-amber-50'
-										: ''}"
-								>
-									<span class="w-5 shrink-0 text-sm text-muted-foreground">{i + 1}</span>
-									<span class="flex-1 text-sm font-medium">{player?.name}</span>
-									<span class="text-xs text-muted-foreground">{pts}</span>
-									<div class="flex gap-1">
-										<Button
-											variant="ghost"
-											size="icon-sm"
-											onclick={() => swapRank(i, i - 1)}
-											disabled={prevPts !== pts}
-											aria-label="上へ"
-										>
-											<ChevronUpIcon />
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon-sm"
-											onclick={() => swapRank(i, i + 1)}
-											disabled={nextPts !== pts}
-											aria-label="下へ"
-										>
-											<ChevronDownIcon />
-										</Button>
-									</div>
+					<Label class="mb-2 block text-base font-semibold">順位</Label>
+					<div class="mb-4 space-y-1">
+						{#each rankOrder as playerId, i}
+							{@const player = data.players.find((p: Player) => p.id === playerId)}
+							{@const pts = parsedPoints[playerId]}
+							{@const prevPts = i > 0 ? parsedPoints[rankOrder[i - 1]] : null}
+							{@const nextPts = i < rankOrder.length - 1 ? parsedPoints[rankOrder[i + 1]] : null}
+							{@const isTied = prevPts === pts || nextPts === pts}
+							<div
+								class="flex items-center gap-2 rounded border px-3 py-2 {isTied
+									? 'border-amber-300 bg-amber-50'
+									: ''}"
+							>
+								<span class="w-5 shrink-0 text-sm text-muted-foreground">{i + 1}</span>
+								<span class="flex-1 text-sm font-medium">{player?.name}</span>
+								<span class="text-xs text-muted-foreground">{pts}</span>
+								<div class="flex gap-1">
+									<Button
+										variant="ghost"
+										size="icon-sm"
+										onclick={() => swapRank(i, i - 1)}
+										disabled={prevPts !== pts}
+										aria-label="上へ"
+									>
+										<ChevronUpIcon />
+									</Button>
+									<Button
+										variant="ghost"
+										size="icon-sm"
+										onclick={() => swapRank(i, i + 1)}
+										disabled={nextPts !== pts}
+										aria-label="下へ"
+									>
+										<ChevronDownIcon />
+									</Button>
 								</div>
-							{/each}
-						</div>
+							</div>
+						{/each}
 					</div>
 				{/if}
 
