@@ -25,6 +25,8 @@ jobs:
 
       - name: Type check
         run: pnpm --filter tenbou-frontend check
+        env:
+          PUBLIC_API_URL: https://tenbou-backend.mijinko.workers.dev
 
       - name: Build
         run: pnpm build
