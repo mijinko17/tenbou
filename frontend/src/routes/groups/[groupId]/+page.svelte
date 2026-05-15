@@ -33,6 +33,7 @@
 		genten: number;
 		kaeshi: number;
 	};
+	type ChipEntry = { playerId: string; count: number };
 
 	const { data } = $props<{
 		data: {
@@ -40,6 +41,7 @@
 			players: Player[];
 			currentPlayerId: string | null;
 			rounds: Round[];
+			chips: ChipEntry[];
 			error?: string;
 		};
 	}>();
@@ -47,6 +49,66 @@
 	const groupId = $derived(page.params.groupId);
 
 	let showSettings = $state(false);
+
+	// チップ入力フォーム
+	let showChipForm = $state(false);
+	let chipInputs = $state<Record<string, string>>({});
+	let chipSubmitError = $state<string | null>(null);
+	let chipLoading = $state(false);
+
+	const hasChips = $derived((data.chips ?? []).length > 0);
+
+	function openChipForm() {
+		const existing = Object.fromEntries((data.chips ?? []).map((c: ChipEntry) => [c.playerId, String(c.count)]));
+		chipInputs = Object.fromEntries(
+			(data.players ?? []).map((p: Player) => [p.id, existing[p.id] ?? ""]),
+		);
+		chipSubmitError = null;
+		showChipForm = true;
+	}
+
+	const chipSum = $derived(
+		Object.values(chipInputs).reduce((s, v) => {
+			const n = parseInt(v, 10);
+			return s + (Number.isNaN(n) ? 0 : n);
+		}, 0),
+	);
+
+	const chipSumOk = $derived(
+		Object.values(chipInputs).every((v) => v === "" || !Number.isNaN(parseInt(v, 10))) &&
+		chipSum === 0,
+	);
+
+	async function submitChips() {
+		chipSubmitError = null;
+		const chips: ChipEntry[] = (data.players ?? []).map((p: Player) => ({
+			playerId: p.id,
+			count: parseInt(chipInputs[p.id] ?? "0", 10) || 0,
+		}));
+		if (chips.reduce((s: number, c: ChipEntry) => s + c.count, 0) !== 0) {
+			chipSubmitError = "チップ収支の合計が0になっていません";
+			return;
+		}
+		chipLoading = true;
+		try {
+			const res = await fetch(`${API_URL}/groups/${groupId}/chips`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ chips }),
+			});
+			const json = (await res.json()) as { error?: string };
+			if (!res.ok) {
+				chipSubmitError = json.error ?? "エラーが発生しました";
+				return;
+			}
+			showChipForm = false;
+			await invalidateAll();
+		} catch {
+			chipSubmitError = "通信エラーが発生しました";
+		} finally {
+			chipLoading = false;
+		}
+	}
 
 	// 成績登録フォーム
 	let showForm = $state(false);
@@ -122,17 +184,28 @@
 		return (score > 0 ? "+" : "") + score.toFixed(1);
 	}
 
+	const chipScores = $derived(
+		(data.players ?? []).map((p: Player) => {
+			const count = (data.chips ?? []).find((c: ChipEntry) => c.playerId === p.id)?.count ?? 0;
+			return {
+				playerId: p.id,
+				score: Math.round((count * (data.group?.chip_rate ?? 0)) / 1000 * 10) / 10,
+			};
+		}),
+	);
+
 	const totals = $derived(
-		(data.players ?? []).map((p: Player) => ({
-			playerId: p.id,
-			score:
-				Math.round(
-					(data.rounds ?? []).reduce((sum: number, round: Round) => {
-						const r = round.results.find((r: RoundResult) => r.playerId === p.id);
-						return sum + (r?.score ?? 0);
-					}, 0) * 10,
-				) / 10,
-		})),
+		(data.players ?? []).map((p: Player) => {
+			const roundScore = (data.rounds ?? []).reduce((sum: number, round: Round) => {
+				const r = round.results.find((r: RoundResult) => r.playerId === p.id);
+				return sum + (r?.score ?? 0);
+			}, 0);
+			const chipScore = chipScores.find((c: { playerId: string; score: number }) => c.playerId === p.id)?.score ?? 0;
+			return {
+				playerId: p.id,
+				score: Math.round((roundScore + chipScore) * 10) / 10,
+			};
+		}),
 	);
 
 	async function submitRound() {
@@ -210,7 +283,12 @@
 					<InfoIcon class="size-4" />
 				</Button>
 			</div>
-			<Button onclick={openForm} disabled={showForm} class="shrink-0">成績を登録</Button>
+			<div class="flex shrink-0 gap-2">
+				<Button variant="outline" onclick={openChipForm} disabled={showChipForm}>
+					{hasChips ? "チップを編集" : "チップを入力"}
+				</Button>
+				<Button onclick={openForm} disabled={showForm}>成績を登録</Button>
+			</div>
 		</div>
 
 		{#if showSettings}
@@ -224,6 +302,54 @@
 					<dt>チップ</dt><dd class="text-right text-foreground">1枚 = {data.group.chip_rate}点</dd>
 					<dt>飛び賞</dt><dd class="text-right text-foreground">{data.group.tobi}</dd>
 				</dl>
+			</div>
+		{/if}
+
+		{#if showChipForm}
+			<div class="mb-6 rounded-lg border p-4">
+				<Label class="mb-2 block text-base font-semibold">チップ収支</Label>
+				<div class="mb-4 space-y-3">
+					{#each data.players as player}
+						<div class="flex items-center gap-3">
+							<Label class="w-20 shrink-0 {player.id === data.currentPlayerId ? 'font-bold' : ''}">
+								{player.name}
+							</Label>
+							<InputGroup.Root class="flex-1">
+								<InputGroup.Input
+									type="number"
+									bind:value={chipInputs[player.id]}
+									placeholder="例: 3 / -2"
+								/>
+								<InputGroup.Addon align="inline-end">枚</InputGroup.Addon>
+							</InputGroup.Root>
+						</div>
+					{/each}
+				</div>
+
+				<p class="mb-4 text-sm {chipSumOk ? 'text-green-600' : 'text-muted-foreground'}">
+					合計: {chipSum} / 0
+					{#if chipSumOk}✓{/if}
+				</p>
+
+				{#if chipSubmitError}
+					<Alert variant="destructive" class="mb-4">
+						<AlertDescription>{chipSubmitError}</AlertDescription>
+					</Alert>
+				{/if}
+
+				<div class="flex gap-2">
+					<Button
+						variant="outline"
+						onclick={() => (showChipForm = false)}
+						disabled={chipLoading}
+						class="flex-1"
+					>
+						キャンセル
+					</Button>
+					<Button onclick={submitChips} disabled={chipLoading} class="flex-1">
+						{chipLoading ? "保存中..." : "保存"}
+					</Button>
+				</div>
 			</div>
 		{/if}
 
@@ -373,6 +499,24 @@
 							</Table.Row>
 						{/each}
 					</Table.Body>
+					{#if hasChips}
+						<Table.Body>
+							<Table.Row>
+								<Table.Cell class="text-muted-foreground">チップ</Table.Cell>
+								{#each chipScores as chip}
+									<Table.Cell
+										class="text-right tabular-nums {chip.score > 0
+											? 'text-blue-600'
+											: chip.score < 0
+												? 'text-red-500'
+												: ''}"
+									>
+										{formatScore(chip.score)}
+									</Table.Cell>
+								{/each}
+							</Table.Row>
+						</Table.Body>
+					{/if}
 					<Table.Footer>
 						<Table.Row>
 							<Table.Cell class="font-bold">合計</Table.Cell>

@@ -53,6 +53,21 @@ export const game_rounds = sqliteTable("game_rounds", {
 	played_at: text("played_at").notNull().default(sql`(datetime('now'))`),
 });
 
+export const chip_totals = sqliteTable(
+	"chip_totals",
+	{
+		id: text("id").primaryKey(),
+		group_id: text("group_id")
+			.notNull()
+			.references(() => groups.id),
+		player_id: text("player_id")
+			.notNull()
+			.references(() => players.id),
+		chips: integer("chips").notNull().default(0),
+	},
+	(table) => [unique().on(table.group_id, table.player_id)],
+);
+
 export const game_results = sqliteTable(
 	"game_results",
 	{
