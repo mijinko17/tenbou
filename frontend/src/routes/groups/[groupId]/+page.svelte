@@ -66,7 +66,7 @@
 
 	const parsedPoints = $derived(
 		Object.fromEntries(
-			Object.entries(rawPointInputs).map(([id, v]) => [id, parseInt(v, 10)]),
+			Object.entries(rawPointInputs).map(([id, v]): [string, number] => [id, parseInt(v, 10)]),
 		),
 	);
 
@@ -81,7 +81,7 @@
 	);
 
 	const allPointsEntered = $derived(
-		(data.players ?? []).every((p) => !Number.isNaN(parsedPoints[p.id])),
+		(data.players ?? []).every((p: Player) => !Number.isNaN(parsedPoints[p.id])),
 	);
 
 	// 素点が変わるたびに rankOrder を点数順でリセット
@@ -112,7 +112,7 @@
 	const hasTobi = $derived(Object.values(parsedPoints).some((v) => !Number.isNaN(v) && v < 0));
 
 	const killerCandidates = $derived(
-		(data.players ?? []).filter((p) => {
+		(data.players ?? []).filter((p: Player) => {
 			const v = parsedPoints[p.id];
 			return Number.isNaN(v) || v >= 0;
 		}),
@@ -123,12 +123,12 @@
 	}
 
 	const totals = $derived(
-		(data.players ?? []).map((p) => ({
+		(data.players ?? []).map((p: Player) => ({
 			playerId: p.id,
 			score:
 				Math.round(
-					(data.rounds ?? []).reduce((sum, round) => {
-						const r = round.results.find((r) => r.playerId === p.id);
+					(data.rounds ?? []).reduce((sum: number, round: Round) => {
+						const r = round.results.find((r: RoundResult) => r.playerId === p.id);
 						return sum + (r?.score ?? 0);
 					}, 0) * 10,
 				) / 10,
@@ -138,10 +138,12 @@
 	async function submitRound() {
 		submitError = null;
 
-		const results = (data.players ?? []).map((p) => ({
-			playerId: p.id,
-			rawPoints: parsedPoints[p.id],
-		}));
+		const results: { playerId: string; rawPoints: number }[] = (data.players ?? []).map(
+			(p: Player) => ({
+				playerId: p.id,
+				rawPoints: parsedPoints[p.id] as number,
+			}),
+		);
 
 		if (results.some((r) => Number.isNaN(r.rawPoints))) {
 			submitError = "すべてのプレイヤーの素点を入力してください";
@@ -360,7 +362,7 @@
 							<Table.Row>
 								<Table.Cell class="text-muted-foreground">{round.roundNo}</Table.Cell>
 								{#each data.players as player}
-									{@const result = round.results.find((r) => r.playerId === player.id)}
+									{@const result = round.results.find((r: RoundResult) => r.playerId === player.id)}
 									<Table.Cell
 										class="text-right tabular-nums {result && result.score > 0
 											? 'text-blue-600'

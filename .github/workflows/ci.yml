@@ -23,6 +23,9 @@ jobs:
       - name: Lint & Format check
         run: pnpm exec biome ci .
 
+      - name: Type check
+        run: pnpm --filter tenbou-frontend check
+
       - name: Build
         run: pnpm build
         env:
