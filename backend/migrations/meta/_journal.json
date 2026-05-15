@@ -29,6 +29,13 @@
       "when": 1778776533291,
       "tag": "0005_add_rank_order_to_game_rounds",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1778869528390,
+      "tag": "0006_add_chip_totals",
+      "breakpoints": true
     }
   ]
 }
