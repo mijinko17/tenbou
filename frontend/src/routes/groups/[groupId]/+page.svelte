@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from "$app/navigation";
+	import { goto, invalidateAll } from "$app/navigation";
 	import { page } from "$app/state";
 	import { API_URL } from "$lib/api";
 	import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
@@ -414,7 +414,11 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 					<InfoIcon class="size-4" />
 				</Button>
 			</div>
-			<DropdownMenu.Root onOpenChange={handleDropdownClose}>
+			<div class="flex items-center gap-2">
+				<Button variant="outline" size="sm" onclick={() => goto(`/groups/${data.group?.id}/settlement`)}>
+					精算
+				</Button>
+				<DropdownMenu.Root onOpenChange={handleDropdownClose}>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
 						<Button variant="default" size="sm" {...props}>
@@ -434,6 +438,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 					</DropdownMenu.Item>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
+			</div>
 		</div>
 
 		{#if showSettings}
