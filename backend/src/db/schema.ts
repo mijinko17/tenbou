@@ -68,6 +68,20 @@ export const chip_totals = sqliteTable(
 	(table) => [unique().on(table.group_id, table.player_id)],
 );
 
+export const advance_payments = sqliteTable("advance_payments", {
+	id: text("id").primaryKey(),
+	group_id: text("group_id")
+		.notNull()
+		.references(() => groups.id),
+	payer_id: text("payer_id")
+		.notNull()
+		.references(() => players.id),
+	beneficiary_ids: text("beneficiary_ids").notNull(), // JSON array of player IDs
+	description: text("description").notNull(),
+	amount: integer("amount").notNull(),
+	created_at: integer("created_at").notNull(),
+});
+
 export const game_results = sqliteTable(
 	"game_results",
 	{

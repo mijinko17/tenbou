@@ -13,6 +13,9 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	import * as Table from "$lib/components/ui/table";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import * as Dialog from "$lib/components/ui/dialog";
+	import * as Select from "$lib/components/ui/select";
+	import { Input } from "$lib/components/ui/input";
+	import { Checkbox } from "$lib/components/ui/checkbox";
 
 	type Player = { id: string; name: string };
 	type RoundResult = { playerId: string; rawPoints: number; score: number };
@@ -36,6 +39,14 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 		kaeshi: number;
 	};
 	type ChipEntry = { playerId: string; count: number };
+	type AdvancePayment = {
+		id: string;
+		payerId: string;
+		beneficiaryIds: string[];
+		description: string;
+		amount: number;
+		createdAt: number;
+	};
 
 	const { data } = $props<{
 		data: {
@@ -44,6 +55,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 			currentPlayerId: string | null;
 			rounds: Round[];
 			chips: ChipEntry[];
+			advancePayments: AdvancePayment[];
 			error?: string;
 		};
 	}>();
@@ -53,12 +65,13 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	let showSettings = $state(false);
 
 	// ドロップダウン閉後に開くアクション
-	let pendingAction = $state<"form" | "chip" | null>(null);
+	let pendingAction = $state<"form" | "chip" | "advance" | null>(null);
 
 	function handleDropdownClose(open: boolean) {
 		if (open || !pendingAction) return;
 		if (pendingAction === "form") initForm();
-		else initChipForm();
+		else if (pendingAction === "chip") initChipForm();
+		else if (pendingAction === "advance") initAdvanceForm();
 		pendingAction = null;
 	}
 
@@ -120,6 +133,92 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 		} finally {
 			chipLoading = false;
 		}
+	}
+
+	// 立替登録フォーム
+	let showAdvanceForm = $state(false);
+	let advancePayerId = $state("");
+	let advanceBeneficiaryIds = $state<string[]>([]);
+	let advanceDescription = $state("");
+	let advanceAmount = $state("");
+	let advanceSubmitError = $state<string | null>(null);
+	let advanceLoading = $state(false);
+
+	function initAdvanceForm() {
+		advancePayerId = data.players[0]?.id ?? "";
+		advanceBeneficiaryIds = [];
+		advanceDescription = "";
+		advanceAmount = "";
+		advanceSubmitError = null;
+		showAdvanceForm = true;
+	}
+
+	function toggleBeneficiary(playerId: string) {
+		if (advanceBeneficiaryIds.includes(playerId)) {
+			advanceBeneficiaryIds = advanceBeneficiaryIds.filter((id) => id !== playerId);
+		} else {
+			advanceBeneficiaryIds = [...advanceBeneficiaryIds, playerId];
+		}
+	}
+
+	async function submitAdvancePayment() {
+		advanceSubmitError = null;
+		const amount = parseInt(advanceAmount, 10);
+		if (!advancePayerId) {
+			advanceSubmitError = "立替者を選択してください";
+			return;
+		}
+		if (advanceBeneficiaryIds.length === 0) {
+			advanceSubmitError = "被立替者を1人以上選択してください";
+			return;
+		}
+		if (advanceBeneficiaryIds.every((id) => id === advancePayerId)) {
+			advanceSubmitError = "立替対象が立替者のみのケースは登録できません";
+			return;
+		}
+		if (!advanceDescription.trim()) {
+			advanceSubmitError = "内容を入力してください";
+			return;
+		}
+		if (Number.isNaN(amount) || amount <= 0) {
+			advanceSubmitError = "金額を正の整数で入力してください";
+			return;
+		}
+		advanceLoading = true;
+		try {
+			const res = await fetch(`${API_URL}/groups/${groupId}/advance-payments`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					payerId: advancePayerId,
+					beneficiaryIds: advanceBeneficiaryIds,
+					description: advanceDescription,
+					amount,
+				}),
+			});
+			const json = (await res.json()) as { error?: string };
+			if (!res.ok) {
+				advanceSubmitError = json.error ?? "エラーが発生しました";
+				return;
+			}
+			showAdvanceForm = false;
+			await invalidateAll();
+		} catch {
+			advanceSubmitError = "通信エラーが発生しました";
+		} finally {
+			advanceLoading = false;
+		}
+	}
+
+	let deleteTargetId = $state<string | null>(null);
+
+	async function confirmDeleteAdvancePayment() {
+		if (!deleteTargetId) return;
+		const res = await fetch(`${API_URL}/groups/${groupId}/advance-payments/${deleteTargetId}`, {
+			method: "DELETE",
+		});
+		deleteTargetId = null;
+		if (res.ok) await invalidateAll();
 	}
 
 	// 成績登録フォーム
@@ -310,6 +409,9 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 					<DropdownMenu.Item onclick={() => (pendingAction = "chip")}>
 						チップ登録
 					</DropdownMenu.Item>
+					<DropdownMenu.Item onclick={() => (pendingAction = "advance")}>
+						立替登録
+					</DropdownMenu.Item>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 		</div>
@@ -370,6 +472,80 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 					</Button>
 					<Button onclick={submitChips} disabled={chipLoading} class="flex-1">
 						{chipLoading ? "保存中..." : "保存"}
+					</Button>
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
+
+		<!-- 立替登録ダイアログ -->
+		<Dialog.Root bind:open={showAdvanceForm}>
+			<Dialog.Content class="max-h-[90dvh] overflow-y-auto">
+				<Dialog.Header>
+					<Dialog.Title>立替登録</Dialog.Title>
+				</Dialog.Header>
+
+				<div class="space-y-4">
+					<div>
+						<Label class="mb-1 block text-sm font-medium">支払者</Label>
+						<Select.Root type="single" bind:value={advancePayerId}>
+							<Select.Trigger class="w-full">
+								{data.players.find((p: Player) => p.id === advancePayerId)?.name ?? "選択してください"}
+							</Select.Trigger>
+							<Select.Content>
+								{#each data.players as player}
+									<Select.Item value={player.id}>{player.name}</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					</div>
+					<div>
+						<Label class="mb-1 block text-sm font-medium">対象者</Label>
+						<div class="space-y-2">
+							{#each data.players as player}
+								<div class="flex items-center gap-2">
+									<Checkbox
+										id="beneficiary-{player.id}"
+										checked={advanceBeneficiaryIds.includes(player.id)}
+										onCheckedChange={() => toggleBeneficiary(player.id)}
+									/>
+									<Label for="beneficiary-{player.id}" class="font-normal">{player.name}</Label>
+								</div>
+							{/each}
+						</div>
+					</div>
+					<div>
+						<Label class="mb-1 block text-sm font-medium">内容</Label>
+						<Input
+							type="text"
+							bind:value={advanceDescription}
+							placeholder="例: 飲み物代"
+						/>
+					</div>
+					<div>
+						<Label class="mb-1 block text-sm font-medium">金額</Label>
+						<InputGroup.Root>
+							<InputGroup.Input
+								type="number"
+								bind:value={advanceAmount}
+								placeholder="例: 500"
+							/>
+							<InputGroup.Addon align="inline-end">G</InputGroup.Addon>
+						</InputGroup.Root>
+					</div>
+				</div>
+
+				{#if advanceSubmitError}
+					<Alert variant="destructive" class="mt-4">
+						<AlertDescription>{advanceSubmitError}</AlertDescription>
+					</Alert>
+				{/if}
+
+				<Dialog.Footer>
+					<Button variant="outline" onclick={() => (showAdvanceForm = false)} disabled={advanceLoading} class="flex-1">
+						キャンセル
+					</Button>
+					<Button onclick={submitAdvancePayment} disabled={advanceLoading} class="flex-1">
+						{advanceLoading ? "登録中..." : "登録"}
 					</Button>
 				</Dialog.Footer>
 			</Dialog.Content>
@@ -556,6 +732,61 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 						</Table.Row>
 					</Table.Footer>
 				</Table.Root>
+			</div>
+		{/if}
+
+		<!-- 立替削除確認ダイアログ -->
+		<Dialog.Root open={deleteTargetId !== null} onOpenChange={(open) => { if (!open) deleteTargetId = null; }}>
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>削除の確認</Dialog.Title>
+				</Dialog.Header>
+				<p class="text-sm text-muted-foreground">この立替記録を削除しますか？</p>
+				<Dialog.Footer>
+					<Button variant="outline" onclick={() => (deleteTargetId = null)} class="flex-1">キャンセル</Button>
+					<Button variant="destructive" onclick={confirmDeleteAdvancePayment} class="flex-1">削除</Button>
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
+
+		{#if (data.advancePayments ?? []).length > 0}
+			<div class="mt-6">
+				<p class="mb-2 text-sm font-semibold">立替履歴</p>
+				<div class="-mx-4 overflow-x-auto">
+					<table class="w-full text-sm">
+						<thead>
+							<tr class="border-b text-left text-muted-foreground">
+								<th class="px-4 py-2 font-normal">支払者</th>
+								<th class="px-4 py-2 font-normal">対象者</th>
+								<th class="px-4 py-2 font-normal">内容</th>
+								<th class="px-4 py-2 text-right font-normal">金額</th>
+								<th class="px-4 py-2"></th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each data.advancePayments as payment}
+								{@const payer = data.players.find((p: Player) => p.id === payment.payerId)}
+								{@const beneficiaryNames = payment.beneficiaryIds.map((id: string) => data.players.find((p: Player) => p.id === id)?.name ?? "?").join("、")}
+								<tr class="border-b last:border-0">
+									<td class="px-4 py-2">{payer?.name ?? "?"}</td>
+									<td class="px-4 py-2">{beneficiaryNames}</td>
+									<td class="px-4 py-2">{payment.description}</td>
+									<td class="px-4 py-2 text-right tabular-nums">{payment.amount.toLocaleString()}G</td>
+									<td class="px-4 py-2 text-right">
+										<Button
+											variant="ghost"
+											size="icon-sm"
+											onclick={() => (deleteTargetId = payment.id)}
+											aria-label="削除"
+										>
+											<span class="text-xs text-muted-foreground">✕</span>
+										</Button>
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
 			</div>
 		{/if}
 	{/if}

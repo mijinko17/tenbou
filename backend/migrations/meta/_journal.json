@@ -36,6 +36,13 @@
       "when": 1778869528390,
       "tag": "0006_add_chip_totals",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1778874401649,
+      "tag": "0007_add_advance_payments",
+      "breakpoints": true
     }
   ]
 }
