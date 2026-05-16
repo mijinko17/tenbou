@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	import { Button } from "$lib/components/ui/button";
 	import * as InputGroup from "$lib/components/ui/input-group";
 	import { Label } from "$lib/components/ui/label";
-	import * as RadioGroup from "$lib/components/ui/radio-group";
+
 	import * as Table from "$lib/components/ui/table";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import * as Dialog from "$lib/components/ui/dialog";
@@ -244,6 +244,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	// 成績登録フォーム
 	let showForm = $state(false);
 	let rawPointInputs = $state<Record<string, string>>({});
+	let displayInputs = $state<Record<string, string>>({});
 	let rankOrder = $state<string[]>([]);
 	let tobiKillerId = $state("");
 	let submitError = $state<string | null>(null);
@@ -251,10 +252,29 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 
 	function initForm() {
 		rawPointInputs = Object.fromEntries((data.players ?? []).map((p: Player) => [p.id, ""]));
+		displayInputs = Object.fromEntries((data.players ?? []).map((p: Player) => [p.id, ""]));
 		rankOrder = (data.players ?? []).map((p: Player) => p.id);
 		tobiKillerId = "";
 		submitError = null;
 		showForm = true;
+	}
+
+	function handleScoreInput(playerId: string, e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const ie = e as InputEvent;
+		if (input.value !== "") {
+			displayInputs[playerId] = input.value;
+		} else if (!input.validity.badInput) {
+			displayInputs[playerId] = "";
+		} else if (ie.data === "-") {
+			displayInputs[playerId] = "-";
+		} else if (ie.inputType?.startsWith("delete")) {
+			// "-3" から "3" を削除して "-" だけ残った場合
+			displayInputs[playerId] = "-";
+		} else {
+			// "あ" など不正な文字の入力 → 表示を変えない
+			displayInputs[playerId] = "";
+		}
 	}
 
 	const parsedPoints = $derived(
@@ -595,8 +615,10 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 							</Label>
 									<InputGroup.Root class="flex-1">
 								<div class="pointer-events-none absolute inset-0 flex items-center pl-2.5 text-base md:text-sm">
-									{#if rawPointInputs[player.id]}
-										<span class="text-foreground">{rawPointInputs[player.id]}</span><span class="text-muted-foreground">00</span>
+									{#if displayInputs[player.id] === "-"}
+										<span class="text-foreground">-</span>
+									{:else if displayInputs[player.id]}
+										<span class="text-foreground">{displayInputs[player.id]}</span><span class="text-muted-foreground">00</span>
 									{:else}
 										<span class="text-muted-foreground/60">例: 267</span><span class="text-muted-foreground/40">00</span>
 									{/if}
@@ -604,6 +626,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 								<InputGroup.Input
 									type="number"
 									bind:value={rawPointInputs[player.id]}
+									oninput={(e) => handleScoreInput(player.id, e)}
 									class="text-transparent caret-foreground"
 								/>
 								<InputGroup.Addon align="inline-end">点</InputGroup.Addon>
@@ -620,18 +643,17 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 				{#if hasTobi}
 					<Label class="mb-2 block text-base font-semibold">飛ばしたプレイヤー</Label>
 					<div class="mb-4">
-						<RadioGroup.Root bind:value={tobiKillerId} class="gap-3">
-							{#each killerCandidates as player}
-								<div class="flex items-center gap-2">
-									<RadioGroup.Item value={player.id} id="killer-{player.id}" />
-									<Label for="killer-{player.id}">{player.name}</Label>
-								</div>
-							{/each}
-							<div class="flex items-center gap-2">
-								<RadioGroup.Item value="none" id="killer-none" />
-								<Label for="killer-none">無し</Label>
-							</div>
-						</RadioGroup.Root>
+						<Select.Root type="single" bind:value={tobiKillerId}>
+							<Select.Trigger class="w-full">
+								{killerCandidates.find((p: Player) => p.id === tobiKillerId)?.name ?? (tobiKillerId === "none" ? "無し" : "選択してください")}
+							</Select.Trigger>
+							<Select.Content>
+								{#each killerCandidates as player}
+									<Select.Item value={player.id}>{player.name}</Select.Item>
+								{/each}
+								<Select.Item value="none">無し</Select.Item>
+							</Select.Content>
+						</Select.Root>
 					</div>
 				{/if}
 
