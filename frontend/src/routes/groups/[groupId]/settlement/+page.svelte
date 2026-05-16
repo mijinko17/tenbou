@@ -131,9 +131,9 @@
 									</TableCell>
 									<TableCell
 										class="text-right text-sm font-bold {row.finalBalance > 0
-											? 'text-blue-600'
+											? 'text-cyan-600'
 											: row.finalBalance < 0
-												? 'text-red-600'
+												? 'text-rose-600'
 												: ''}"
 									>
 										{formatG(row.finalBalance)}

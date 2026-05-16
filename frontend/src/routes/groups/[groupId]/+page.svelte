@@ -751,9 +751,9 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 									{@const result = round.results.find((r: RoundResult) => r.playerId === player.id)}
 									<Table.Cell
 										class="text-right tabular-nums {result && result.score > 0
-											? 'text-blue-600'
+											? 'text-cyan-600'
 											: result && result.score < 0
-												? 'text-red-500'
+												? 'text-rose-600'
 												: ''}"
 									>
 										{result ? formatScore(result.score) : "−"}
@@ -779,9 +779,9 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 								{#each chipScores as chip}
 									<Table.Cell
 										class="text-right tabular-nums {chip.score > 0
-											? 'text-blue-600'
+											? 'text-cyan-600'
 											: chip.score < 0
-												? 'text-red-500'
+												? 'text-rose-600'
 												: ''}"
 									>
 										{formatScore(chip.score)}
@@ -806,9 +806,9 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 							{#each totals as total}
 								<Table.Cell
 									class="text-right font-bold tabular-nums {total.score > 0
-										? 'text-blue-600'
+										? 'text-cyan-600'
 										: total.score < 0
-											? 'text-red-500'
+											? 'text-rose-600'
 											: ''}"
 								>
 									{formatScore(total.score)}
