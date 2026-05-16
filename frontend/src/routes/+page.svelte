@@ -22,14 +22,14 @@
 		<li class="flex gap-3">
 			<span class="mt-0.5 text-primary">✓</span>
 			<div>
-				<p class="font-medium">場代などの立替も管理可能</p>
-				<p class="text-sm text-muted-foreground">チップや場代の立替をまとめて記録できます。</p>
+				<p class="font-medium">立替を管理可能</p>
+				<p class="text-sm text-muted-foreground">場代などの立替をまとめて記録できます。</p>
 			</div>
 		</li>
 		<li class="flex gap-3">
 			<span class="mt-0.5 text-primary">✓</span>
 			<div>
-				<p class="font-medium">各プレイヤーの支払額も計算可能</p>
+				<p class="font-medium">各メンバーの支払額を計算可能</p>
 				<p class="text-sm text-muted-foreground">誰が誰にいくら払うかを最適化して表示します。</p>
 			</div>
 		</li>
