@@ -245,6 +245,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	let showForm = $state(false);
 	let rawPointInputs = $state<Record<string, string>>({});
 	let displayInputs = $state<Record<string, string>>({});
+	let hasPartialInput = $state<Record<string, boolean>>({});
 	let rankOrder = $state<string[]>([]);
 	let tobiKillerId = $state("");
 	let submitError = $state<string | null>(null);
@@ -253,6 +254,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	function initForm() {
 		rawPointInputs = Object.fromEntries((data.players ?? []).map((p: Player) => [p.id, ""]));
 		displayInputs = Object.fromEntries((data.players ?? []).map((p: Player) => [p.id, ""]));
+		hasPartialInput = Object.fromEntries((data.players ?? []).map((p: Player) => [p.id, false]));
 		rankOrder = (data.players ?? []).map((p: Player) => p.id);
 		tobiKillerId = "";
 		submitError = null;
@@ -264,16 +266,21 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 		const ie = e as InputEvent;
 		if (input.value !== "") {
 			displayInputs[playerId] = input.value;
+			hasPartialInput[playerId] = false;
 		} else if (!input.validity.badInput) {
 			displayInputs[playerId] = "";
+			hasPartialInput[playerId] = false;
 		} else if (ie.data === "-") {
 			displayInputs[playerId] = "-";
+			hasPartialInput[playerId] = false;
 		} else if (ie.inputType?.startsWith("delete")) {
 			// "-3" から "3" を削除して "-" だけ残った場合
 			displayInputs[playerId] = "-";
+			hasPartialInput[playerId] = false;
 		} else {
-			// "あ" など不正な文字の入力 → 表示を変えない
+			// "e" など数値として不正な文字の入力
 			displayInputs[playerId] = "";
+			hasPartialInput[playerId] = true;
 		}
 	}
 
@@ -616,10 +623,10 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 									<InputGroup.Root class="flex-1">
 								<div class="pointer-events-none absolute inset-0 flex items-center pl-2.5 text-base md:text-sm">
 									{#if displayInputs[player.id] === "-"}
-										<span class="text-foreground">-</span>
+										<span class="invisible">-</span>
 									{:else if displayInputs[player.id]}
-										<span class="text-foreground">{displayInputs[player.id]}</span><span class="text-muted-foreground">00</span>
-									{:else}
+										<span class="invisible">{displayInputs[player.id]}</span><span class="text-muted-foreground">00</span>
+									{:else if !hasPartialInput[player.id]}
 										<span class="text-muted-foreground/60">例: 267</span><span class="text-muted-foreground/40">00</span>
 									{/if}
 								</div>
@@ -627,7 +634,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 									type="number"
 									bind:value={rawPointInputs[player.id]}
 									oninput={(e) => handleScoreInput(player.id, e)}
-									class="text-transparent caret-foreground"
+									class=""
 								/>
 								<InputGroup.Addon align="inline-end">点</InputGroup.Addon>
 							</InputGroup.Root>
