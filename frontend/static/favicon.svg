@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Tile shadow -->
+  <rect x="5" y="7" width="54" height="54" rx="7" ry="7" fill="#00000033"/>
+  <!-- Tile body -->
+  <rect x="4" y="4" width="54" height="54" rx="7" ry="7" fill="#f5f0e8"/>
+  <!-- Tile inner border -->
+  <rect x="7" y="7" width="48" height="48" rx="5" ry="5" fill="none" stroke="#c8b88a" stroke-width="1.5"/>
+  <!-- Kanji 点 -->
+  <text
+    x="31"
+    y="45"
+    text-anchor="middle"
+    font-family="'Noto Serif CJK JP', 'Hiragino Mincho ProN', serif"
+    font-size="34"
+    font-weight="bold"
+    fill="#1a3a6b"
+  >点</text>
+</svg>
