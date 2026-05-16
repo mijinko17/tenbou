@@ -5,10 +5,10 @@
 	</div>
 
 	<a
-		href="/create"
+		href="/groups/create"
 		class="mb-12 flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 text-base font-semibold text-primary-foreground hover:bg-primary/90"
 	>
-		グループを作成する
+		はじめる
 	</a>
 
 	<ul class="space-y-4">
