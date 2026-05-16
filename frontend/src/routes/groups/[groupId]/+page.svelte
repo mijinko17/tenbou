@@ -699,7 +699,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 							<Table.Head class="w-px"></Table.Head>
 						</Table.Row>
 					</Table.Header>
-					<Table.Body>
+					<Table.Body class={hasChips ? "[&_tr:last-child]:border-b" : ""}>
 						{#each data.rounds as round, i}
 							<Table.Row>
 								<Table.Cell class="text-muted-foreground">{i + 1}</Table.Cell>
