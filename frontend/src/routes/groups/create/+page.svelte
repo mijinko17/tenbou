@@ -15,8 +15,16 @@
 	let umaPreset = $state<"10-20" | "10-30" | "custom">("10-20");
 	let umaCustom = $state([20, 10, -10, -20]);
 	let tobi = $state(10);
-	let genten = $state(25000);
-	let kaeshi = $state(30000);
+
+	let gentenRaw = $state(25);
+	let gentenDisplay = $state("25");
+	let gentenPartial = $state(false);
+	const genten = $derived(gentenRaw * 1000);
+
+	let kaeshiRaw = $state(30);
+	let kaeshiDisplay = $state("30");
+	let kaeshiPartial = $state(false);
+	const kaeshi = $derived(kaeshiRaw * 1000);
 
 	let groupId = $state<string | null>(null);
 	let inviteToken = $state<string | null>(null);
@@ -37,6 +45,24 @@
 	const dashboardUrl = $derived(
 		groupId ? `${location.origin}/groups/${groupId}` : "",
 	);
+
+	function handleThousandInput(
+		e: Event,
+		setDisplay: (v: string) => void,
+		setPartial: (v: boolean) => void,
+	) {
+		const input = e.currentTarget as HTMLInputElement;
+		if (input.value !== "") {
+			setDisplay(input.value);
+			setPartial(false);
+		} else if (!input.validity.badInput) {
+			setDisplay("");
+			setPartial(false);
+		} else {
+			setDisplay("");
+			setPartial(true);
+		}
+	}
 
 	async function submit() {
 		errorMsg = null;
@@ -146,7 +172,21 @@
 			<div class="space-y-1.5">
 				<Label for="genten">原点</Label>
 				<InputGroup>
-					<InputGroupInput id="genten" bind:value={genten} type="number" min={1} required />
+					<div class="pointer-events-none absolute inset-0 flex items-center pl-2.5 text-base md:text-sm">
+						{#if gentenDisplay}
+							<span class="invisible">{gentenDisplay}</span><span class="text-muted-foreground">000</span>
+						{:else if !gentenPartial}
+							<span class="text-muted-foreground/60">例: 25</span><span class="text-muted-foreground/40">000</span>
+						{/if}
+					</div>
+					<InputGroupInput
+						id="genten"
+						bind:value={gentenRaw}
+						type="number"
+						min={1}
+						required
+						oninput={(e) => handleThousandInput(e, (v) => (gentenDisplay = v), (v) => (gentenPartial = v))}
+					/>
 					<InputGroupAddon align="inline-end">点</InputGroupAddon>
 				</InputGroup>
 			</div>
@@ -154,7 +194,21 @@
 			<div class="space-y-1.5">
 				<Label for="kaeshi">返し</Label>
 				<InputGroup>
-					<InputGroupInput id="kaeshi" bind:value={kaeshi} type="number" min={1} required />
+					<div class="pointer-events-none absolute inset-0 flex items-center pl-2.5 text-base md:text-sm">
+						{#if kaeshiDisplay}
+							<span class="invisible">{kaeshiDisplay}</span><span class="text-muted-foreground">000</span>
+						{:else if !kaeshiPartial}
+							<span class="text-muted-foreground/60">例: 30</span><span class="text-muted-foreground/40">000</span>
+						{/if}
+					</div>
+					<InputGroupInput
+						id="kaeshi"
+						bind:value={kaeshiRaw}
+						type="number"
+						min={1}
+						required
+						oninput={(e) => handleThousandInput(e, (v) => (kaeshiDisplay = v), (v) => (kaeshiPartial = v))}
+					/>
 					<InputGroupAddon align="inline-end">点</InputGroupAddon>
 				</InputGroup>
 			</div>
