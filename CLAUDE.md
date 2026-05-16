@@ -50,7 +50,7 @@ pnpm db:migrate:local  # ローカル D1 にマイグレーションを適用
 
 ## 技術スタック
 
-- **フロントエンド**: SvelteKit (adapter-static) + TypeScript + Skeleton v3（UIコンポーネント）+ Tailwind CSS
+- **フロントエンド**: SvelteKit (adapter-static) + TypeScript + shadcn-svelte（UIコンポーネント）+ Tailwind CSS
 - **APIサーバー**: Cloudflare Workers + Hono
 - **DB**: Cloudflare D1（SQLite）
 - **ORM**: Drizzle ORM（`drizzle-orm`）
@@ -82,6 +82,13 @@ pnpm db:migrate:local  # ローカル D1 にマイグレーションを適用
 - 対局ごとの素点入力・保存
 - ウマ・オカあり（グループごとに設定可能）
 - 最終精算額の出力（支払い最適化）
+
+## UIコンポーネント（shadcn-svelte）
+
+- GUIは原則として shadcn-svelte のコンポーネントを使って実装する
+- 必要なコンポーネントは `npx shadcn-svelte@latest add <component>` で追加する
+- 追加されたコンポーネントは `frontend/src/lib/components/ui/` に配置される
+- コンポーネントを直接編集してカスタマイズしてよい（shadcn-svelte の設計思想）
 
 ## 絶対に守ること
 

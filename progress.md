@@ -52,6 +52,7 @@
 | コードスタイル | タブインデント、ダブルクォート（Biome） |
 | pnpm バージョン | 10.33.0（`packageManager` フィールドで固定） |
 | Tailwind | v4（`@tailwindcss/vite` プラグイン方式、設定ファイルなし） |
+| UIコンポーネント | shadcn-svelte（`frontend/src/lib/components/ui/` に配置） |
 | CD デプロイ方法 | `wrangler-action` の `workingDirectory: backend` から両方デプロイ |
 | Pages プロジェクト名 | `tenbou` |
 | Workers 名 | `tenbou-backend` |

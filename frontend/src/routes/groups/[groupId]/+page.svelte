@@ -753,26 +753,26 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 			<div class="mt-6">
 				<p class="mb-2 text-sm font-semibold">立替履歴</p>
 				<div class="-mx-4 overflow-x-auto">
-					<table class="w-full text-sm">
-						<thead>
-							<tr class="border-b text-left text-muted-foreground">
-								<th class="px-4 py-2 font-normal">支払者</th>
-								<th class="px-4 py-2 font-normal">対象者</th>
-								<th class="px-4 py-2 font-normal">内容</th>
-								<th class="px-4 py-2 text-right font-normal">金額</th>
-								<th class="px-4 py-2"></th>
-							</tr>
-						</thead>
-						<tbody>
+					<Table.Root>
+						<Table.Header>
+							<Table.Row>
+								<Table.Head class="text-muted-foreground">支払者</Table.Head>
+								<Table.Head class="text-muted-foreground">対象者</Table.Head>
+								<Table.Head class="text-muted-foreground">内容</Table.Head>
+								<Table.Head class="text-right text-muted-foreground">金額</Table.Head>
+								<Table.Head></Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body>
 							{#each data.advancePayments as payment}
 								{@const payer = data.players.find((p: Player) => p.id === payment.payerId)}
 								{@const beneficiaryNames = payment.beneficiaryIds.map((id: string) => data.players.find((p: Player) => p.id === id)?.name ?? "?").join("、")}
-								<tr class="border-b last:border-0">
-									<td class="px-4 py-2">{payer?.name ?? "?"}</td>
-									<td class="px-4 py-2">{beneficiaryNames}</td>
-									<td class="px-4 py-2">{payment.description}</td>
-									<td class="px-4 py-2 text-right tabular-nums">{payment.amount.toLocaleString()}G</td>
-									<td class="px-4 py-2 text-right">
+								<Table.Row>
+									<Table.Cell>{payer?.name ?? "?"}</Table.Cell>
+									<Table.Cell>{beneficiaryNames}</Table.Cell>
+									<Table.Cell>{payment.description}</Table.Cell>
+									<Table.Cell class="text-right tabular-nums">{payment.amount.toLocaleString()}G</Table.Cell>
+									<Table.Cell class="text-right">
 										<Button
 											variant="ghost"
 											size="icon-sm"
@@ -781,11 +781,11 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 										>
 											<span class="text-xs text-muted-foreground">✕</span>
 										</Button>
-									</td>
-								</tr>
+									</Table.Cell>
+								</Table.Row>
 							{/each}
-						</tbody>
-					</table>
+						</Table.Body>
+					</Table.Root>
 				</div>
 			</div>
 		{/if}
