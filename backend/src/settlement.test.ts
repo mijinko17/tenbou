@@ -65,13 +65,7 @@ describe("computeSettlement - 立替調整", () => {
 			},
 		];
 
-		const { breakdown } = computeSettlement(
-			group,
-			players,
-			[],
-			[],
-			payments,
-		);
+		const { breakdown } = computeSettlement(group, players, [], [], payments);
 
 		const adj = Object.fromEntries(
 			breakdown.map((r) => [r.playerId, r.advanceAdjustment]),
@@ -93,19 +87,13 @@ describe("computeSettlement - 立替調整", () => {
 			},
 		];
 
-		const { breakdown } = computeSettlement(
-			group,
-			players,
-			[],
-			[],
-			payments,
-		);
+		const { breakdown } = computeSettlement(group, players, [], [], payments);
 
 		const adj = Object.fromEntries(
 			breakdown.map((r) => [r.playerId, r.advanceAdjustment]),
 		);
 		expect(adj.A).toBe(10 - 3); // 受け取り10 - 被立替3 = +7
-		expect(adj.B).toBe(-4);     // 登録順1位→余り1を負担
+		expect(adj.B).toBe(-4); // 登録順1位→余り1を負担
 		expect(adj.C).toBe(-3);
 	});
 
@@ -118,13 +106,7 @@ describe("computeSettlement - 立替調整", () => {
 			},
 		];
 
-		const { breakdown } = computeSettlement(
-			group,
-			players,
-			[],
-			[],
-			payments,
-		);
+		const { breakdown } = computeSettlement(group, players, [], [], payments);
 
 		const total = breakdown.reduce((s, r) => s + r.finalBalance, 0);
 		expect(total).toBe(0);
