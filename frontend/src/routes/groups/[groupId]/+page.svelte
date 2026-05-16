@@ -259,7 +259,10 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 
 	const parsedPoints = $derived(
 		Object.fromEntries(
-			Object.entries(rawPointInputs).map(([id, v]): [string, number] => [id, parseInt(v, 10)]),
+			Object.entries(rawPointInputs).map(([id, v]): [string, number] => {
+				const n = parseInt(v, 10);
+				return [id, Number.isNaN(n) ? NaN : n * 100];
+			}),
 		),
 	);
 
@@ -590,11 +593,18 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 							<Label class="w-20 shrink-0 {player.id === data.currentPlayerId ? 'font-bold' : ''}">
 								{player.name}
 							</Label>
-							<InputGroup.Root class="flex-1">
+									<InputGroup.Root class="flex-1">
+								<div class="pointer-events-none absolute inset-0 flex items-center pl-2.5 text-base md:text-sm">
+									{#if rawPointInputs[player.id]}
+										<span class="text-foreground">{rawPointInputs[player.id]}</span><span class="text-muted-foreground">00</span>
+									{:else}
+										<span class="text-muted-foreground/60">例: 267</span><span class="text-muted-foreground/40">00</span>
+									{/if}
+								</div>
 								<InputGroup.Input
 									type="number"
 									bind:value={rawPointInputs[player.id]}
-									placeholder="例: 32000"
+									class="text-transparent caret-foreground"
 								/>
 								<InputGroup.Addon align="inline-end">点</InputGroup.Addon>
 							</InputGroup.Root>
