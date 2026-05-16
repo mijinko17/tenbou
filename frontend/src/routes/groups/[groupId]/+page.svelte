@@ -63,6 +63,18 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 
 	const groupId = $derived(page.params.groupId);
 
+	$effect(() => {
+		if (data.group) {
+			const key = "tenbou_visited_groups";
+			const existing = JSON.parse(localStorage.getItem(key) ?? "[]") as { id: string; name: string }[];
+			const updated = [
+				{ id: data.group.id, name: data.group.name },
+				...existing.filter((g) => g.id !== data.group!.id),
+			].slice(0, 5);
+			localStorage.setItem(key, JSON.stringify(updated));
+		}
+	});
+
 	let showSettings = $state(false);
 
 	// ドロップダウン閉後に開くアクション

@@ -95,6 +95,15 @@
 			}
 			groupId = data.groupId ?? null;
 			inviteToken = data.inviteToken ?? null;
+			if (data.groupId) {
+				const key = "tenbou_visited_groups";
+				const existing = JSON.parse(localStorage.getItem(key) ?? "[]") as { id: string; name: string }[];
+				const updated = [
+					{ id: data.groupId, name: groupName },
+					...existing.filter((g) => g.id !== data.groupId),
+				].slice(0, 5);
+				localStorage.setItem(key, JSON.stringify(updated));
+			}
 		} catch {
 			errorMsg = "通信エラーが発生しました";
 		} finally {
