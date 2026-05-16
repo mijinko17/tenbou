@@ -5,6 +5,7 @@
 	import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
 	import ChevronUpIcon from "@lucide/svelte/icons/chevron-up";
 	import InfoIcon from "@lucide/svelte/icons/info";
+	import XIcon from "@lucide/svelte/icons/x";
 import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	import { Button } from "$lib/components/ui/button";
 	import * as InputGroup from "$lib/components/ui/input-group";
@@ -208,6 +209,25 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 		} finally {
 			advanceLoading = false;
 		}
+	}
+
+	let showDeleteChipConfirm = $state(false);
+
+	async function confirmDeleteChips() {
+		const res = await fetch(`${API_URL}/groups/${groupId}/chips`, { method: "DELETE" });
+		showDeleteChipConfirm = false;
+		if (res.ok) await invalidateAll();
+	}
+
+	let deleteTargetRoundId = $state<string | null>(null);
+
+	async function confirmDeleteRound() {
+		if (!deleteTargetRoundId) return;
+		const res = await fetch(`${API_URL}/groups/${groupId}/rounds/${deleteTargetRoundId}`, {
+			method: "DELETE",
+		});
+		deleteTargetRoundId = null;
+		if (res.ok) await invalidateAll();
 	}
 
 	let deleteTargetId = $state<string | null>(null);
@@ -668,7 +688,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 				<Table.Root>
 					<Table.Header>
 						<Table.Row>
-							<Table.Head class="text-muted-foreground">#</Table.Head>
+							<Table.Head class="w-px text-muted-foreground">#</Table.Head>
 							{#each data.players as player}
 								<Table.Head
 									class="text-right {player.id === data.currentPlayerId ? 'text-primary' : ''}"
@@ -676,12 +696,13 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 									{player.name}
 								</Table.Head>
 							{/each}
+							<Table.Head class="w-px"></Table.Head>
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
-						{#each data.rounds as round}
+						{#each data.rounds as round, i}
 							<Table.Row>
-								<Table.Cell class="text-muted-foreground">{round.roundNo}</Table.Cell>
+								<Table.Cell class="text-muted-foreground">{i + 1}</Table.Cell>
 								{#each data.players as player}
 									{@const result = round.results.find((r: RoundResult) => r.playerId === player.id)}
 									<Table.Cell
@@ -694,6 +715,16 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 										{result ? formatScore(result.score) : "−"}
 									</Table.Cell>
 								{/each}
+								<Table.Cell>
+									<Button
+										variant="ghost"
+										size="icon-sm"
+										onclick={() => (deleteTargetRoundId = round.id)}
+										aria-label="削除"
+									>
+										<XIcon class="size-4 text-muted-foreground" />
+									</Button>
+								</Table.Cell>
 							</Table.Row>
 						{/each}
 					</Table.Body>
@@ -712,6 +743,16 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 										{formatScore(chip.score)}
 									</Table.Cell>
 								{/each}
+								<Table.Cell>
+									<Button
+										variant="ghost"
+										size="icon-sm"
+										onclick={() => (showDeleteChipConfirm = true)}
+										aria-label="削除"
+									>
+										<XIcon class="size-4 text-muted-foreground" />
+									</Button>
+								</Table.Cell>
 							</Table.Row>
 						</Table.Body>
 					{/if}
@@ -729,11 +770,40 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 									{formatScore(total.score)}
 								</Table.Cell>
 							{/each}
-						</Table.Row>
-					</Table.Footer>
+								<Table.Cell></Table.Cell>
+							</Table.Row>
+						</Table.Footer>
 				</Table.Root>
 			</div>
 		{/if}
+
+		<!-- チップ削除確認ダイアログ -->
+		<Dialog.Root bind:open={showDeleteChipConfirm}>
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>削除の確認</Dialog.Title>
+				</Dialog.Header>
+				<p class="text-sm text-muted-foreground">チップ収支を削除しますか？</p>
+				<Dialog.Footer>
+					<Button variant="outline" onclick={() => (showDeleteChipConfirm = false)} class="flex-1">キャンセル</Button>
+					<Button variant="destructive" onclick={confirmDeleteChips} class="flex-1">削除</Button>
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
+
+		<!-- 対局削除確認ダイアログ -->
+		<Dialog.Root open={deleteTargetRoundId !== null} onOpenChange={(open) => { if (!open) deleteTargetRoundId = null; }}>
+			<Dialog.Content>
+				<Dialog.Header>
+					<Dialog.Title>削除の確認</Dialog.Title>
+				</Dialog.Header>
+				<p class="text-sm text-muted-foreground">この対局の成績を削除しますか？</p>
+				<Dialog.Footer>
+					<Button variant="outline" onclick={() => (deleteTargetRoundId = null)} class="flex-1">キャンセル</Button>
+					<Button variant="destructive" onclick={confirmDeleteRound} class="flex-1">削除</Button>
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
 
 		<!-- 立替削除確認ダイアログ -->
 		<Dialog.Root open={deleteTargetId !== null} onOpenChange={(open) => { if (!open) deleteTargetId = null; }}>
@@ -779,7 +849,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 											onclick={() => (deleteTargetId = payment.id)}
 											aria-label="削除"
 										>
-											<span class="text-xs text-muted-foreground">✕</span>
+											<XIcon class="size-4 text-muted-foreground" />
 										</Button>
 									</Table.Cell>
 								</Table.Row>

@@ -575,6 +575,24 @@ app.put(
 	},
 );
 
+// DELETE /groups/:groupId/chips
+app.delete("/groups/:groupId/chips", async (c) => {
+	const { groupId } = c.req.param();
+	const db = drizzle(c.env.DB);
+
+	const [group] = await db
+		.select({ id: schema.groups.id })
+		.from(schema.groups)
+		.where(eq(schema.groups.id, groupId))
+		.limit(1);
+
+	if (!group) return c.json({ error: "Group not found" }, 404);
+
+	await db.delete(schema.chip_totals).where(eq(schema.chip_totals.group_id, groupId));
+
+	return new Response(null, { status: 204 });
+});
+
 // POST /groups/:groupId/advance-payments
 const createAdvancePaymentSchema = z.object({
 	payerId: z.string().uuid(),
@@ -632,6 +650,32 @@ app.post(
 		return c.json({ success: true }, 201);
 	},
 );
+
+// DELETE /groups/:groupId/rounds/:roundId
+app.delete("/groups/:groupId/rounds/:roundId", async (c) => {
+	const { groupId, roundId } = c.req.param();
+	const db = drizzle(c.env.DB);
+
+	const [round] = await db
+		.select({ id: schema.game_rounds.id })
+		.from(schema.game_rounds)
+		.where(
+			and(
+				eq(schema.game_rounds.id, roundId),
+				eq(schema.game_rounds.group_id, groupId),
+			),
+		)
+		.limit(1);
+
+	if (!round) return c.json({ error: "Round not found" }, 404);
+
+	await db.batch([
+		db.delete(schema.game_results).where(eq(schema.game_results.round_id, roundId)),
+		db.delete(schema.game_rounds).where(eq(schema.game_rounds.id, roundId)),
+	] as Parameters<typeof db.batch>[0]);
+
+	return new Response(null, { status: 204 });
+});
 
 // DELETE /groups/:groupId/advance-payments/:paymentId
 app.delete("/groups/:groupId/advance-payments/:paymentId", async (c) => {
