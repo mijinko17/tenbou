@@ -621,7 +621,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 								{player.name}
 							</Label>
 									<InputGroup.Root class="flex-1">
-								<div class="pointer-events-none absolute inset-0 flex translate-y-px items-center pl-2.5 text-base md:text-sm">
+								<div class="pointer-events-none absolute inset-0 flex items-center pl-2.5 text-base md:translate-y-px md:text-sm">
 									{#if displayInputs[player.id] === "-"}
 										<span class="invisible">-</span>
 									{:else if displayInputs[player.id]}

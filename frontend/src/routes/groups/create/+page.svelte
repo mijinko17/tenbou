@@ -172,7 +172,7 @@
 			<div class="space-y-1.5">
 				<Label for="genten">原点</Label>
 				<InputGroup>
-					<div class="pointer-events-none absolute inset-0 flex translate-y-px items-center pl-2.5 text-base md:text-sm">
+					<div class="pointer-events-none absolute inset-0 flex items-center pl-2.5 text-base md:translate-y-px md:text-sm">
 						{#if gentenDisplay}
 							<span class="invisible">{gentenDisplay}</span><span class="text-muted-foreground">000</span>
 						{:else if !gentenPartial}
@@ -194,7 +194,7 @@
 			<div class="space-y-1.5">
 				<Label for="kaeshi">返し</Label>
 				<InputGroup>
-					<div class="pointer-events-none absolute inset-0 flex translate-y-px items-center pl-2.5 text-base md:text-sm">
+					<div class="pointer-events-none absolute inset-0 flex items-center pl-2.5 text-base md:translate-y-px md:text-sm">
 						{#if kaeshiDisplay}
 							<span class="invisible">{kaeshiDisplay}</span><span class="text-muted-foreground">000</span>
 						{:else if !kaeshiPartial}
