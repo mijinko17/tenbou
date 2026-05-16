@@ -1,4 +1,37 @@
-<main class="mx-auto max-w-lg px-4 py-8">
-	<h1 class="mb-4 text-2xl font-bold">tenbou</h1>
-	<p class="text-muted-foreground">麻雀成績管理アプリ</p>
+<main class="mx-auto max-w-lg px-4 py-12">
+	<div class="mb-10 text-center">
+		<h1 class="mb-2 text-3xl font-bold tracking-tight">tenbou</h1>
+		<p class="text-muted-foreground">麻雀成績管理アプリ</p>
+	</div>
+
+	<a
+		href="/create"
+		class="mb-12 flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 text-base font-semibold text-primary-foreground hover:bg-primary/90"
+	>
+		グループを作成する
+	</a>
+
+	<ul class="space-y-4">
+		<li class="flex gap-3">
+			<span class="mt-0.5 text-primary">✓</span>
+			<div>
+				<p class="font-medium">素点を入力するだけでスコア計算</p>
+				<p class="text-sm text-muted-foreground">ウマ・オカを考慮した最終スコアを自動で算出します。</p>
+			</div>
+		</li>
+		<li class="flex gap-3">
+			<span class="mt-0.5 text-primary">✓</span>
+			<div>
+				<p class="font-medium">場代などの立替も管理可能</p>
+				<p class="text-sm text-muted-foreground">チップや場代の立替をまとめて記録できます。</p>
+			</div>
+		</li>
+		<li class="flex gap-3">
+			<span class="mt-0.5 text-primary">✓</span>
+			<div>
+				<p class="font-medium">各プレイヤーの支払額も計算可能</p>
+				<p class="text-sm text-muted-foreground">誰が誰にいくら払うかを最適化して表示します。</p>
+			</div>
+		</li>
+	</ul>
 </main>
