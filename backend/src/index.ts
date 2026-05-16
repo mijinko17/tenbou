@@ -588,7 +588,9 @@ app.delete("/groups/:groupId/chips", async (c) => {
 
 	if (!group) return c.json({ error: "Group not found" }, 404);
 
-	await db.delete(schema.chip_totals).where(eq(schema.chip_totals.group_id, groupId));
+	await db
+		.delete(schema.chip_totals)
+		.where(eq(schema.chip_totals.group_id, groupId));
 
 	return new Response(null, { status: 204 });
 });
@@ -670,7 +672,9 @@ app.delete("/groups/:groupId/rounds/:roundId", async (c) => {
 	if (!round) return c.json({ error: "Round not found" }, 404);
 
 	await db.batch([
-		db.delete(schema.game_results).where(eq(schema.game_results.round_id, roundId)),
+		db
+			.delete(schema.game_results)
+			.where(eq(schema.game_results.round_id, roundId)),
 		db.delete(schema.game_rounds).where(eq(schema.game_rounds.id, roundId)),
 	] as Parameters<typeof db.batch>[0]);
 
