@@ -1,3 +1,4 @@
+import { ResultAsync, err, ok } from "neverthrow";
 import type * as schema from "../db/schema";
 import { AppError } from "../errors";
 import { computeRoundScores } from "../score";
@@ -58,71 +59,101 @@ export type CreateGroupInput = {
 	kaeshi: number;
 };
 
-export async function createGroup(
+export function createGroup(
 	repo: GroupRepo,
 	input: CreateGroupInput,
-): Promise<{ groupId: string }> {
+): ResultAsync<{ groupId: string }, AppError> {
 	const groupId = crypto.randomUUID();
 	const players = input.players.map((name) => ({
 		id: crypto.randomUUID(),
 		name,
 	}));
-	await repo.createGroup({
-		groupId,
-		name: input.name,
-		rate: input.rate,
-		chipRate: input.chipRate,
-		uma: input.uma,
-		tobi: input.tobi,
-		genten: input.genten,
-		kaeshi: input.kaeshi,
-		players,
-	});
-	return { groupId };
+	return ResultAsync.fromSafePromise(
+		repo.createGroup({
+			groupId,
+			name: input.name,
+			rate: input.rate,
+			chipRate: input.chipRate,
+			uma: input.uma,
+			tobi: input.tobi,
+			genten: input.genten,
+			kaeshi: input.kaeshi,
+			players,
+		}),
+	).map(() => ({ groupId }));
 }
 
-export async function getGroup(repo: GroupRepo, groupId: string) {
-	const group = await repo.findGroup(groupId);
-	if (!group) throw new AppError("Group not found", 404);
-
-	const [players, rounds, chips, advancePayments] = await Promise.all([
-		repo.findPlayers(groupId),
-		repo.findRoundsWithResults(groupId),
-		repo.findChips(groupId),
-		repo.findAdvancePayments(groupId),
-	]);
-
-	const roundsWithScores = rounds.map((round) => ({
-		id: round.id,
-		roundNo: round.roundNo,
-		playedAt: round.playedAt,
-		tobiKillerId: round.tobiKillerId,
-		results: computeRoundScores(
-			round.results,
-			group,
-			round.tobiKillerId,
-			round.rankOrder,
-		),
-	}));
-
-	return { group, players, rounds: roundsWithScores, chips, advancePayments };
+export function getGroup(
+	repo: GroupRepo,
+	groupId: string,
+): ResultAsync<
+	{
+		group: GroupRow;
+		players: { id: string; name: string }[];
+		rounds: {
+			id: string;
+			roundNo: number;
+			playedAt: string;
+			tobiKillerId: string | null;
+			results: { playerId: string; rawPoints: number; score: number }[];
+		}[];
+		chips: { playerId: string; count: number }[];
+		advancePayments: AdvancePaymentData[];
+	},
+	AppError
+> {
+	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+		.andThen((group) =>
+			group ? ok(group) : err(new AppError("Group not found", 404)),
+		)
+		.andThen((group) =>
+			ResultAsync.fromSafePromise(
+				Promise.all([
+					repo.findPlayers(groupId),
+					repo.findRoundsWithResults(groupId),
+					repo.findChips(groupId),
+					repo.findAdvancePayments(groupId),
+				]),
+			).map(([players, rounds, chips, advancePayments]) => ({
+				group,
+				players,
+				rounds: rounds.map((round) => ({
+					id: round.id,
+					roundNo: round.roundNo,
+					playedAt: round.playedAt,
+					tobiKillerId: round.tobiKillerId,
+					results: computeRoundScores(
+						round.results,
+						group,
+						round.tobiKillerId,
+						round.rankOrder,
+					),
+				})),
+				chips,
+				advancePayments,
+			})),
+		);
 }
 
-export async function deletePlayer(
+export function deletePlayer(
 	repo: GroupRepo,
 	groupId: string,
 	playerId: string,
-): Promise<void> {
-	const player = await repo.findPlayerInGroup(groupId, playerId);
-	if (!player) throw new AppError("Player not found", 404);
-
-	const count = await repo.countPlayers(groupId);
-	if (count <= 4) {
-		throw new AppError(
-			"Cannot delete: group must have at least 4 players",
-			409,
-		);
-	}
-
-	await repo.deletePlayer(playerId);
+): ResultAsync<void, AppError> {
+	return ResultAsync.fromSafePromise(repo.findPlayerInGroup(groupId, playerId))
+		.andThen((player) =>
+			player ? ok(undefined) : err(new AppError("Player not found", 404)),
+		)
+		.andThen(() => ResultAsync.fromSafePromise(repo.countPlayers(groupId)))
+		.andThen((count) =>
+			count <= 4
+				? err(
+						new AppError(
+							"Cannot delete: group must have at least 4 players",
+							409,
+						),
+					)
+				: ok(undefined),
+		)
+		.andThen(() => ResultAsync.fromSafePromise(repo.deletePlayer(playerId)));
 }

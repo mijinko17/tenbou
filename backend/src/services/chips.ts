@@ -1,3 +1,4 @@
+import { ResultAsync, err, ok } from "neverthrow";
 import { AppError } from "../errors";
 
 export type ChipRepo = {
@@ -14,34 +15,41 @@ export type UpdateChipsInput = {
 	chips: { playerId: string; count: number }[];
 };
 
-export async function updateChips(
+export function updateChips(
 	repo: ChipRepo,
 	groupId: string,
 	input: UpdateChipsInput,
-): Promise<void> {
-	const group = await repo.findGroup(groupId);
-	if (!group) throw new AppError("Group not found", 404);
-
-	const groupPlayerIds = new Set(await repo.findPlayerIds(groupId));
-	for (const chip of input.chips) {
-		if (!groupPlayerIds.has(chip.playerId)) {
-			throw new AppError("Invalid playerId");
-		}
-	}
-
-	const total = input.chips.reduce((s, chip) => s + chip.count, 0);
-	if (total !== 0) {
-		throw new AppError("チップ収支の合計は0である必要があります");
-	}
-
-	await repo.upsertChips(groupId, input.chips);
+): ResultAsync<void, AppError> {
+	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+		.andThen((group) =>
+			group ? ok(undefined) : err(new AppError("Group not found", 404)),
+		)
+		.andThen(() => ResultAsync.fromSafePromise(repo.findPlayerIds(groupId)))
+		.andThen((ids) => {
+			const groupPlayerIds = new Set(ids);
+			for (const chip of input.chips) {
+				if (!groupPlayerIds.has(chip.playerId)) {
+					return err(new AppError("Invalid playerId"));
+				}
+			}
+			const total = input.chips.reduce((s, chip) => s + chip.count, 0);
+			if (total !== 0) {
+				return err(new AppError("チップ収支の合計は0である必要があります"));
+			}
+			return ok(undefined);
+		})
+		.andThen(() =>
+			ResultAsync.fromSafePromise(repo.upsertChips(groupId, input.chips)),
+		);
 }
 
-export async function resetChips(
+export function resetChips(
 	repo: ChipRepo,
 	groupId: string,
-): Promise<void> {
-	const group = await repo.findGroup(groupId);
-	if (!group) throw new AppError("Group not found", 404);
-	await repo.deleteChips(groupId);
+): ResultAsync<void, AppError> {
+	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+		.andThen((group) =>
+			group ? ok(undefined) : err(new AppError("Group not found", 404)),
+		)
+		.andThen(() => ResultAsync.fromSafePromise(repo.deleteChips(groupId)));
 }

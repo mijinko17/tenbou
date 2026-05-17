@@ -1,3 +1,4 @@
+import { type Result, ResultAsync, err, ok } from "neverthrow";
 import type * as schema from "../db/schema";
 import { AppError } from "../errors";
 
@@ -30,41 +31,51 @@ export type CreateRoundInput = {
 	rankOrder?: string[];
 };
 
-export async function createRound(
-	repo: RoundRepo,
-	groupId: string,
-	input: CreateRoundInput,
-): Promise<{ roundId: string; roundNo: number }> {
-	const group = await repo.findGroup(groupId);
-	if (!group) throw new AppError("Group not found", 404);
-
+function validateSum(
+	group: GroupRow,
+	results: { rawPoints: number }[],
+): Result<void, AppError> {
 	const expectedSum = group.genten * 4;
-	const actualSum = input.results.reduce((s, r) => s + r.rawPoints, 0);
+	const actualSum = results.reduce((s, r) => s + r.rawPoints, 0);
 	if (actualSum !== expectedSum) {
-		throw new AppError(
-			`素点の合計が${expectedSum}になっていません（現在: ${actualSum}）`,
+		return err(
+			new AppError(
+				`素点の合計が${expectedSum}になっていません（現在: ${actualSum}）`,
+			),
 		);
 	}
+	return ok(undefined);
+}
 
-	const groupPlayerIds = new Set(await repo.findPlayerIds(groupId));
-	for (const r of input.results) {
+function validatePlayerIds(
+	results: { playerId: string }[],
+	groupPlayerIds: Set<string>,
+): Result<void, AppError> {
+	for (const r of results) {
 		if (!groupPlayerIds.has(r.playerId)) {
-			throw new AppError("Invalid playerId");
+			return err(new AppError("Invalid playerId"));
 		}
 	}
+	return ok(undefined);
+}
 
+function validateTies(input: CreateRoundInput): Result<void, AppError> {
 	const pointCounts = new Map<number, number>();
 	for (const r of input.results) {
 		pointCounts.set(r.rawPoints, (pointCounts.get(r.rawPoints) ?? 0) + 1);
 	}
 	const hasTies = [...pointCounts.values()].some((c) => c > 1);
 	if (hasTies && !input.rankOrder) {
-		throw new AppError("同点プレイヤーがいる場合、順位を指定してください");
+		return err(
+			new AppError("同点プレイヤーがいる場合、順位を指定してください"),
+		);
 	}
 	if (input.rankOrder) {
 		const rankSet = new Set(input.rankOrder);
 		if (!input.results.every((r) => rankSet.has(r.playerId))) {
-			throw new AppError("rankOrder に無効なプレイヤーIDが含まれています");
+			return err(
+				new AppError("rankOrder に無効なプレイヤーIDが含まれています"),
+			);
 		}
 		for (let i = 0; i < input.rankOrder.length - 1; i++) {
 			const curr =
@@ -74,15 +85,23 @@ export async function createRound(
 				input.results.find((r) => r.playerId === input.rankOrder?.[i + 1])
 					?.rawPoints ?? 0;
 			if (curr < next) {
-				throw new AppError("順位の指定が点数と矛盾しています");
+				return err(new AppError("順位の指定が点数と矛盾しています"));
 			}
 		}
 	}
+	return ok(undefined);
+}
 
+function validateTobi(
+	input: CreateRoundInput,
+	groupPlayerIds: Set<string>,
+): Result<void, AppError> {
 	const hasTobi = input.results.some((r) => r.rawPoints < 0);
 	if (hasTobi && !input.tobiKillerId) {
-		throw new AppError(
-			"飛んだプレイヤーがいる場合、飛ばしたプレイヤーを指定してください",
+		return err(
+			new AppError(
+				"飛んだプレイヤーがいる場合、飛ばしたプレイヤーを指定してください",
+			),
 		);
 	}
 	if (input.tobiKillerId) {
@@ -90,42 +109,64 @@ export async function createRound(
 			input.results.filter((r) => r.rawPoints < 0).map((r) => r.playerId),
 		);
 		if (tobiPlayerIds.has(input.tobiKillerId)) {
-			throw new AppError(
-				"飛ばしたプレイヤーは飛んだプレイヤー自身にはなれません",
+			return err(
+				new AppError("飛ばしたプレイヤーは飛んだプレイヤー自身にはなれません"),
 			);
 		}
 		if (!groupPlayerIds.has(input.tobiKillerId)) {
-			throw new AppError("Invalid tobiKillerId");
+			return err(new AppError("Invalid tobiKillerId"));
 		}
 	}
-
-	const roundCount = await repo.countRounds(groupId);
-	const roundId = crypto.randomUUID();
-	const roundNo = roundCount + 1;
-
-	await repo.createRound({
-		roundId,
-		groupId,
-		roundNo,
-		tobiKillerId: input.tobiKillerId ?? null,
-		rankOrder: input.rankOrder ?? null,
-		results: input.results.map((r) => ({
-			id: crypto.randomUUID(),
-			roundId,
-			playerId: r.playerId,
-			rawPoints: r.rawPoints,
-		})),
-	});
-
-	return { roundId, roundNo };
+	return ok(undefined);
 }
 
-export async function deleteRound(
+export function createRound(
+	repo: RoundRepo,
+	groupId: string,
+	input: CreateRoundInput,
+): ResultAsync<{ roundId: string; roundNo: number }, AppError> {
+	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+		.andThen((group) =>
+			group ? ok(group) : err(new AppError("Group not found", 404)),
+		)
+		.andThen((group) => validateSum(group, input.results))
+		.andThen(() => ResultAsync.fromSafePromise(repo.findPlayerIds(groupId)))
+		.map((ids) => new Set(ids))
+		.andThen((groupPlayerIds) =>
+			validatePlayerIds(input.results, groupPlayerIds)
+				.andThen(() => validateTies(input))
+				.andThen(() => validateTobi(input, groupPlayerIds)),
+		)
+		.andThen(() => ResultAsync.fromSafePromise(repo.countRounds(groupId)))
+		.andThen((roundCount) => {
+			const roundId = crypto.randomUUID();
+			const roundNo = roundCount + 1;
+			return ResultAsync.fromSafePromise(
+				repo.createRound({
+					roundId,
+					groupId,
+					roundNo,
+					tobiKillerId: input.tobiKillerId ?? null,
+					rankOrder: input.rankOrder ?? null,
+					results: input.results.map((r) => ({
+						id: crypto.randomUUID(),
+						roundId,
+						playerId: r.playerId,
+						rawPoints: r.rawPoints,
+					})),
+				}),
+			).map(() => ({ roundId, roundNo }));
+		});
+}
+
+export function deleteRound(
 	repo: RoundRepo,
 	groupId: string,
 	roundId: string,
-): Promise<void> {
-	const round = await repo.findRound(groupId, roundId);
-	if (!round) throw new AppError("Round not found", 404);
-	await repo.deleteRound(roundId);
+): ResultAsync<void, AppError> {
+	return ResultAsync.fromSafePromise(repo.findRound(groupId, roundId))
+		.andThen((round) =>
+			round ? ok(undefined) : err(new AppError("Round not found", 404)),
+		)
+		.andThen(() => ResultAsync.fromSafePromise(repo.deleteRound(roundId)));
 }

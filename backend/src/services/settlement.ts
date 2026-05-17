@@ -1,3 +1,4 @@
+import { ResultAsync, err, ok } from "neverthrow";
 import type * as schema from "../db/schema";
 import { AppError } from "../errors";
 import { computeRoundScores } from "../score";
@@ -16,33 +17,44 @@ export type SettlementRepo = {
 	): Promise<{ payer_id: string; beneficiary_ids: string; amount: number }[]>;
 };
 
-export async function getSettlement(repo: SettlementRepo, groupId: string) {
-	const group = await repo.findGroup(groupId);
-	if (!group) throw new AppError("Group not found", 404);
-
-	const [players, rounds, chipRows, advancePaymentRows] = await Promise.all([
-		repo.findPlayers(groupId),
-		repo.findRoundsWithResults(groupId),
-		repo.findChips(groupId),
-		repo.findAdvancePayments(groupId),
-	]);
-
-	const roundScores = rounds.map((round) =>
-		computeRoundScores(
-			round.results,
-			group,
-			round.tobiKillerId,
-			round.rankOrder,
-		),
-	);
-
-	const { breakdown, payments } = computeSettlement(
-		group,
-		players,
-		roundScores,
-		chipRows,
-		advancePaymentRows,
-	);
-
-	return { players, breakdown, payments };
+export function getSettlement(
+	repo: SettlementRepo,
+	groupId: string,
+): ResultAsync<
+	ReturnType<typeof computeSettlement> & {
+		players: { id: string; name: string }[];
+	},
+	AppError
+> {
+	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+		.andThen((group) =>
+			group ? ok(group) : err(new AppError("Group not found", 404)),
+		)
+		.andThen((group) =>
+			ResultAsync.fromSafePromise(
+				Promise.all([
+					repo.findPlayers(groupId),
+					repo.findRoundsWithResults(groupId),
+					repo.findChips(groupId),
+					repo.findAdvancePayments(groupId),
+				]),
+			).map(([players, rounds, chipRows, advancePaymentRows]) => {
+				const roundScores = rounds.map((round) =>
+					computeRoundScores(
+						round.results,
+						group,
+						round.tobiKillerId,
+						round.rankOrder,
+					),
+				);
+				const { breakdown, payments } = computeSettlement(
+					group,
+					players,
+					roundScores,
+					chipRows,
+					advancePaymentRows,
+				);
+				return { players, breakdown, payments };
+			}),
+		);
 }
