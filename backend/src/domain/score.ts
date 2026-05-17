@@ -21,7 +21,7 @@ export function computeRoundScores(
 		const rank = rankMap.get(r.playerId) ?? 0;
 		let score = (r.rawPoints - group.kaeshi) / 1000 + umas[rank];
 
-		if (r.rawPoints < 0) score -= group.tobi;
+		if (r.rawPoints < 0 && tobiKillerId !== null) score -= group.tobi;
 		if (tobiKillerId === r.playerId) score += group.tobi * tobiCount;
 		if (rank === 0) score += oka;
 
