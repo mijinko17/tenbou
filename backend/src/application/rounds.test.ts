@@ -91,7 +91,7 @@ describe("createRound", () => {
 		expect(result._unsafeUnwrapErr().message).toMatch(/矛盾/);
 	});
 
-	it("飛びプレイヤーがいてtobiKillerIdなしの場合は422を返す", async () => {
+	it("飛びプレイヤーがいてtobiKillerIdなしの場合は正常に登録される", async () => {
 		const repo = makeRepo();
 		const tobiResults = [
 			{ playerId: "p1", rawPoints: 60000 },
@@ -101,7 +101,7 @@ describe("createRound", () => {
 		];
 		// sum = 100000 ✓
 		const result = await createRound(repo, "g1", { results: tobiResults });
-		expect(result._unsafeUnwrapErr().message).toMatch(/飛ばしたプレイヤー/);
+		expect(result.isOk()).toBe(true);
 	});
 
 	it("飛ばしたプレイヤーが飛んだプレイヤー自身の場合は422を返す", async () => {

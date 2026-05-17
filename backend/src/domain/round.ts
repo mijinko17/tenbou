@@ -73,14 +73,6 @@ export function validateTobi(
 	input: RoundInput,
 	groupPlayerIds: Set<string>,
 ): Result<void, AppError> {
-	const hasTobi = input.results.some((r) => r.rawPoints < 0);
-	if (hasTobi && !input.tobiKillerId) {
-		return err(
-			new AppError(
-				"飛んだプレイヤーがいる場合、飛ばしたプレイヤーを指定してください",
-			),
-		);
-	}
 	if (input.tobiKillerId) {
 		const tobiPlayerIds = new Set(
 			input.results.filter((r) => r.rawPoints < 0).map((r) => r.playerId),

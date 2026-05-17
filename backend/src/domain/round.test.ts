@@ -157,7 +157,7 @@ describe("validateTobi", () => {
 		expect(validateTobi(input, playerIds).isOk()).toBe(true);
 	});
 
-	it("飛びプレイヤーがいて tobiKillerId がない場合は err", () => {
+	it("飛びプレイヤーがいて tobiKillerId がない場合は ok（トビ賞なしとして扱う）", () => {
 		const input = {
 			results: [
 				{ playerId: "p1", rawPoints: 60000 },
@@ -166,9 +166,7 @@ describe("validateTobi", () => {
 				{ playerId: "p4", rawPoints: -10000 },
 			],
 		};
-		const result = validateTobi(input, playerIds);
-		expect(result.isErr()).toBe(true);
-		expect(result._unsafeUnwrapErr().message).toMatch(/飛ばしたプレイヤー/);
+		expect(validateTobi(input, playerIds).isOk()).toBe(true);
 	});
 
 	it("飛びプレイヤーがいて有効な tobiKillerId がある場合は ok", () => {
