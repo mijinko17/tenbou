@@ -1,13 +1,13 @@
-import { type Result, ResultAsync, err, ok } from "neverthrow";
+import { type Result, type ResultAsync, err, ok } from "neverthrow";
 import type * as schema from "../db/schema";
 import { AppError } from "../errors";
 
 type GroupRow = typeof schema.groups.$inferSelect;
 
 export type RoundRepo = {
-	findGroup(groupId: string): Promise<GroupRow | null>;
-	findPlayerIds(groupId: string): Promise<string[]>;
-	countRounds(groupId: string): Promise<number>;
+	findGroup(groupId: string): ResultAsync<GroupRow | null, AppError>;
+	findPlayerIds(groupId: string): ResultAsync<string[], AppError>;
+	countRounds(groupId: string): ResultAsync<number, AppError>;
 	createRound(data: {
 		roundId: string;
 		groupId: string;
@@ -20,9 +20,9 @@ export type RoundRepo = {
 			playerId: string;
 			rawPoints: number;
 		}[];
-	}): Promise<void>;
-	findRound(groupId: string, roundId: string): Promise<{ id: string } | null>;
-	deleteRound(roundId: string): Promise<void>;
+	}): ResultAsync<void, AppError>;
+	findRound(groupId: string, roundId: string): ResultAsync<{ id: string } | null, AppError>;
+	deleteRound(roundId: string): ResultAsync<void, AppError>;
 };
 
 export type CreateRoundInput = {
@@ -125,24 +125,25 @@ export function createRound(
 	groupId: string,
 	input: CreateRoundInput,
 ): ResultAsync<{ roundId: string; roundNo: number }, AppError> {
-	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+	return repo
+		.findGroup(groupId)
 		.andThen((group) =>
 			group ? ok(group) : err(new AppError("Group not found", 404)),
 		)
 		.andThen((group) => validateSum(group, input.results))
-		.andThen(() => ResultAsync.fromSafePromise(repo.findPlayerIds(groupId)))
+		.andThen(() => repo.findPlayerIds(groupId))
 		.map((ids) => new Set(ids))
 		.andThen((groupPlayerIds) =>
 			validatePlayerIds(input.results, groupPlayerIds)
 				.andThen(() => validateTies(input))
 				.andThen(() => validateTobi(input, groupPlayerIds)),
 		)
-		.andThen(() => ResultAsync.fromSafePromise(repo.countRounds(groupId)))
+		.andThen(() => repo.countRounds(groupId))
 		.andThen((roundCount) => {
 			const roundId = crypto.randomUUID();
 			const roundNo = roundCount + 1;
-			return ResultAsync.fromSafePromise(
-				repo.createRound({
+			return repo
+				.createRound({
 					roundId,
 					groupId,
 					roundNo,
@@ -154,8 +155,8 @@ export function createRound(
 						playerId: r.playerId,
 						rawPoints: r.rawPoints,
 					})),
-				}),
-			).map(() => ({ roundId, roundNo }));
+				})
+				.map(() => ({ roundId, roundNo }));
 		});
 }
 
@@ -164,9 +165,10 @@ export function deleteRound(
 	groupId: string,
 	roundId: string,
 ): ResultAsync<void, AppError> {
-	return ResultAsync.fromSafePromise(repo.findRound(groupId, roundId))
+	return repo
+		.findRound(groupId, roundId)
 		.andThen((round) =>
 			round ? ok(undefined) : err(new AppError("Round not found", 404)),
 		)
-		.andThen(() => ResultAsync.fromSafePromise(repo.deleteRound(roundId)));
+		.andThen(() => repo.deleteRound(roundId));
 }

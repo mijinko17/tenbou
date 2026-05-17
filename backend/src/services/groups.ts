@@ -34,18 +34,18 @@ export type GroupRepo = {
 		genten: number;
 		kaeshi: number;
 		players: { id: string; name: string }[];
-	}): Promise<void>;
-	findGroup(groupId: string): Promise<GroupRow | null>;
-	findPlayers(groupId: string): Promise<{ id: string; name: string }[]>;
-	findRoundsWithResults(groupId: string): Promise<RoundData[]>;
-	findChips(groupId: string): Promise<{ playerId: string; count: number }[]>;
-	findAdvancePayments(groupId: string): Promise<AdvancePaymentData[]>;
+	}): ResultAsync<void, AppError>;
+	findGroup(groupId: string): ResultAsync<GroupRow | null, AppError>;
+	findPlayers(groupId: string): ResultAsync<{ id: string; name: string }[], AppError>;
+	findRoundsWithResults(groupId: string): ResultAsync<RoundData[], AppError>;
+	findChips(groupId: string): ResultAsync<{ playerId: string; count: number }[], AppError>;
+	findAdvancePayments(groupId: string): ResultAsync<AdvancePaymentData[], AppError>;
 	findPlayerInGroup(
 		groupId: string,
 		playerId: string,
-	): Promise<{ id: string } | null>;
-	countPlayers(groupId: string): Promise<number>;
-	deletePlayer(playerId: string): Promise<void>;
+	): ResultAsync<{ id: string } | null, AppError>;
+	countPlayers(groupId: string): ResultAsync<number, AppError>;
+	deletePlayer(playerId: string): ResultAsync<void, AppError>;
 };
 
 export type CreateGroupInput = {
@@ -68,8 +68,8 @@ export function createGroup(
 		id: crypto.randomUUID(),
 		name,
 	}));
-	return ResultAsync.fromSafePromise(
-		repo.createGroup({
+	return repo
+		.createGroup({
 			groupId,
 			name: input.name,
 			rate: input.rate,
@@ -79,8 +79,8 @@ export function createGroup(
 			genten: input.genten,
 			kaeshi: input.kaeshi,
 			players,
-		}),
-	).map(() => ({ groupId }));
+		})
+		.map(() => ({ groupId }));
 }
 
 export function getGroup(
@@ -102,19 +102,18 @@ export function getGroup(
 	},
 	AppError
 > {
-	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+	return repo
+		.findGroup(groupId)
 		.andThen((group) =>
 			group ? ok(group) : err(new AppError("Group not found", 404)),
 		)
 		.andThen((group) =>
-			ResultAsync.fromSafePromise(
-				Promise.all([
-					repo.findPlayers(groupId),
-					repo.findRoundsWithResults(groupId),
-					repo.findChips(groupId),
-					repo.findAdvancePayments(groupId),
-				]),
-			).map(([players, rounds, chips, advancePayments]) => ({
+			ResultAsync.combine([
+				repo.findPlayers(groupId),
+				repo.findRoundsWithResults(groupId),
+				repo.findChips(groupId),
+				repo.findAdvancePayments(groupId),
+			]).map(([players, rounds, chips, advancePayments]) => ({
 				group,
 				players,
 				rounds: rounds.map((round) => ({
@@ -140,11 +139,12 @@ export function deletePlayer(
 	groupId: string,
 	playerId: string,
 ): ResultAsync<void, AppError> {
-	return ResultAsync.fromSafePromise(repo.findPlayerInGroup(groupId, playerId))
+	return repo
+		.findPlayerInGroup(groupId, playerId)
 		.andThen((player) =>
 			player ? ok(undefined) : err(new AppError("Player not found", 404)),
 		)
-		.andThen(() => ResultAsync.fromSafePromise(repo.countPlayers(groupId)))
+		.andThen(() => repo.countPlayers(groupId))
 		.andThen((count) =>
 			count <= 4
 				? err(
@@ -155,5 +155,5 @@ export function deletePlayer(
 					)
 				: ok(undefined),
 		)
-		.andThen(() => ResultAsync.fromSafePromise(repo.deletePlayer(playerId)));
+		.andThen(() => repo.deletePlayer(playerId));
 }

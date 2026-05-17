@@ -1,14 +1,14 @@
-import { ResultAsync, err, ok } from "neverthrow";
+import { type ResultAsync, err, ok } from "neverthrow";
 import { AppError } from "../errors";
 
 export type ChipRepo = {
-	findGroup(groupId: string): Promise<{ id: string } | null>;
-	findPlayerIds(groupId: string): Promise<string[]>;
+	findGroup(groupId: string): ResultAsync<{ id: string } | null, AppError>;
+	findPlayerIds(groupId: string): ResultAsync<string[], AppError>;
 	upsertChips(
 		groupId: string,
 		chips: { playerId: string; count: number }[],
-	): Promise<void>;
-	deleteChips(groupId: string): Promise<void>;
+	): ResultAsync<void, AppError>;
+	deleteChips(groupId: string): ResultAsync<void, AppError>;
 };
 
 export type UpdateChipsInput = {
@@ -20,11 +20,12 @@ export function updateChips(
 	groupId: string,
 	input: UpdateChipsInput,
 ): ResultAsync<void, AppError> {
-	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+	return repo
+		.findGroup(groupId)
 		.andThen((group) =>
 			group ? ok(undefined) : err(new AppError("Group not found", 404)),
 		)
-		.andThen(() => ResultAsync.fromSafePromise(repo.findPlayerIds(groupId)))
+		.andThen(() => repo.findPlayerIds(groupId))
 		.andThen((ids) => {
 			const groupPlayerIds = new Set(ids);
 			for (const chip of input.chips) {
@@ -38,18 +39,17 @@ export function updateChips(
 			}
 			return ok(undefined);
 		})
-		.andThen(() =>
-			ResultAsync.fromSafePromise(repo.upsertChips(groupId, input.chips)),
-		);
+		.andThen(() => repo.upsertChips(groupId, input.chips));
 }
 
 export function resetChips(
 	repo: ChipRepo,
 	groupId: string,
 ): ResultAsync<void, AppError> {
-	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+	return repo
+		.findGroup(groupId)
 		.andThen((group) =>
 			group ? ok(undefined) : err(new AppError("Group not found", 404)),
 		)
-		.andThen(() => ResultAsync.fromSafePromise(repo.deleteChips(groupId)));
+		.andThen(() => repo.deleteChips(groupId));
 }

@@ -1,3 +1,4 @@
+import { okAsync } from "neverthrow";
 import { describe, expect, it } from "vitest";
 import { AppError } from "../errors";
 import { type RoundRepo, createRound, deleteRound } from "./rounds";
@@ -21,12 +22,12 @@ const playerIds = ["p1", "p2", "p3", "p4"];
 
 function makeRepo(overrides?: Partial<RoundRepo>): RoundRepo {
 	return {
-		findGroup: async () => baseGroup,
-		findPlayerIds: async () => playerIds,
-		countRounds: async () => 0,
-		createRound: async () => {},
-		findRound: async () => ({ id: "r1" }),
-		deleteRound: async () => {},
+		findGroup: () => okAsync(baseGroup),
+		findPlayerIds: () => okAsync(playerIds),
+		countRounds: () => okAsync(0),
+		createRound: () => okAsync<void, AppError>(undefined),
+		findRound: () => okAsync({ id: "r1" }),
+		deleteRound: () => okAsync<void, AppError>(undefined),
 		...overrides,
 	};
 }
@@ -41,7 +42,7 @@ const validResults = [
 
 describe("createRound", () => {
 	it("グループが存在しない場合は404を返す", async () => {
-		const repo = makeRepo({ findGroup: async () => null });
+		const repo = makeRepo({ findGroup: () => okAsync(null) });
 		const result = await createRound(repo, "g1", { results: validResults });
 		expect(result._unsafeUnwrapErr()).toMatchObject({ status: 404 });
 	});
@@ -120,9 +121,10 @@ describe("createRound", () => {
 	it("正常な入力でroundIdとroundNoを返す", async () => {
 		let savedResultsLength: number | null = null;
 		const repo = makeRepo({
-			countRounds: async () => 2,
-			createRound: async (data) => {
+			countRounds: () => okAsync(2),
+			createRound: (data) => {
 				savedResultsLength = data.results.length;
+				return okAsync<void, AppError>(undefined);
 			},
 		});
 
@@ -137,7 +139,7 @@ describe("createRound", () => {
 
 describe("deleteRound", () => {
 	it("ラウンドが存在しない場合は404を返す", async () => {
-		const repo = makeRepo({ findRound: async () => null });
+		const repo = makeRepo({ findRound: () => okAsync(null) });
 		const result = await deleteRound(repo, "g1", "r1");
 		expect(result._unsafeUnwrapErr()).toMatchObject({ status: 404 });
 	});
@@ -145,8 +147,9 @@ describe("deleteRound", () => {
 	it("正常に削除する", async () => {
 		let deleted = false;
 		const repo = makeRepo({
-			deleteRound: async () => {
+			deleteRound: () => {
 				deleted = true;
+				return okAsync<void, AppError>(undefined);
 			},
 		});
 		const result = await deleteRound(repo, "g1", "r1");

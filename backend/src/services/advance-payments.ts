@@ -1,9 +1,9 @@
-import { ResultAsync, err, ok } from "neverthrow";
+import { type ResultAsync, err, ok } from "neverthrow";
 import { AppError } from "../errors";
 
 export type AdvancePaymentRepo = {
-	findGroup(groupId: string): Promise<{ id: string } | null>;
-	findPlayerIds(groupId: string): Promise<string[]>;
+	findGroup(groupId: string): ResultAsync<{ id: string } | null, AppError>;
+	findPlayerIds(groupId: string): ResultAsync<string[], AppError>;
 	createPayment(data: {
 		id: string;
 		groupId: string;
@@ -12,12 +12,12 @@ export type AdvancePaymentRepo = {
 		description: string;
 		amount: number;
 		createdAt: number;
-	}): Promise<void>;
+	}): ResultAsync<void, AppError>;
 	findPayment(
 		groupId: string,
 		paymentId: string,
-	): Promise<{ id: string } | null>;
-	deletePayment(paymentId: string): Promise<void>;
+	): ResultAsync<{ id: string } | null, AppError>;
+	deletePayment(paymentId: string): ResultAsync<void, AppError>;
 };
 
 export type CreateAdvancePaymentInput = {
@@ -32,11 +32,12 @@ export function createAdvancePayment(
 	groupId: string,
 	input: CreateAdvancePaymentInput,
 ): ResultAsync<void, AppError> {
-	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+	return repo
+		.findGroup(groupId)
 		.andThen((group) =>
 			group ? ok(undefined) : err(new AppError("Group not found", 404)),
 		)
-		.andThen(() => ResultAsync.fromSafePromise(repo.findPlayerIds(groupId)))
+		.andThen(() => repo.findPlayerIds(groupId))
 		.andThen((ids) => {
 			const groupPlayerIds = new Set(ids);
 			if (!groupPlayerIds.has(input.payerId)) {
@@ -55,17 +56,15 @@ export function createAdvancePayment(
 			return ok(undefined);
 		})
 		.andThen(() =>
-			ResultAsync.fromSafePromise(
-				repo.createPayment({
-					id: crypto.randomUUID(),
-					groupId,
-					payerId: input.payerId,
-					beneficiaryIds: input.beneficiaryIds,
-					description: input.description,
-					amount: input.amount,
-					createdAt: Math.floor(Date.now() / 1000),
-				}),
-			),
+			repo.createPayment({
+				id: crypto.randomUUID(),
+				groupId,
+				payerId: input.payerId,
+				beneficiaryIds: input.beneficiaryIds,
+				description: input.description,
+				amount: input.amount,
+				createdAt: Math.floor(Date.now() / 1000),
+			}),
 		);
 }
 
@@ -74,9 +73,10 @@ export function deleteAdvancePayment(
 	groupId: string,
 	paymentId: string,
 ): ResultAsync<void, AppError> {
-	return ResultAsync.fromSafePromise(repo.findPayment(groupId, paymentId))
+	return repo
+		.findPayment(groupId, paymentId)
 		.andThen((payment) =>
 			payment ? ok(undefined) : err(new AppError("Payment not found", 404)),
 		)
-		.andThen(() => ResultAsync.fromSafePromise(repo.deletePayment(paymentId)));
+		.andThen(() => repo.deletePayment(paymentId));
 }

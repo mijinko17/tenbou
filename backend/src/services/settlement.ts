@@ -8,13 +8,13 @@ import type { RoundData } from "./groups";
 type GroupRow = typeof schema.groups.$inferSelect;
 
 export type SettlementRepo = {
-	findGroup(groupId: string): Promise<GroupRow | null>;
-	findPlayers(groupId: string): Promise<{ id: string; name: string }[]>;
-	findRoundsWithResults(groupId: string): Promise<RoundData[]>;
-	findChips(groupId: string): Promise<{ playerId: string; count: number }[]>;
+	findGroup(groupId: string): ResultAsync<GroupRow | null, AppError>;
+	findPlayers(groupId: string): ResultAsync<{ id: string; name: string }[], AppError>;
+	findRoundsWithResults(groupId: string): ResultAsync<RoundData[], AppError>;
+	findChips(groupId: string): ResultAsync<{ playerId: string; count: number }[], AppError>;
 	findAdvancePayments(
 		groupId: string,
-	): Promise<{ payer_id: string; beneficiary_ids: string; amount: number }[]>;
+	): ResultAsync<{ payer_id: string; beneficiary_ids: string; amount: number }[], AppError>;
 };
 
 export function getSettlement(
@@ -26,19 +26,18 @@ export function getSettlement(
 	},
 	AppError
 > {
-	return ResultAsync.fromSafePromise(repo.findGroup(groupId))
+	return repo
+		.findGroup(groupId)
 		.andThen((group) =>
 			group ? ok(group) : err(new AppError("Group not found", 404)),
 		)
 		.andThen((group) =>
-			ResultAsync.fromSafePromise(
-				Promise.all([
-					repo.findPlayers(groupId),
-					repo.findRoundsWithResults(groupId),
-					repo.findChips(groupId),
-					repo.findAdvancePayments(groupId),
-				]),
-			).map(([players, rounds, chipRows, advancePaymentRows]) => {
+			ResultAsync.combine([
+				repo.findPlayers(groupId),
+				repo.findRoundsWithResults(groupId),
+				repo.findChips(groupId),
+				repo.findAdvancePayments(groupId),
+			]).map(([players, rounds, chipRows, advancePaymentRows]) => {
 				const roundScores = rounds.map((round) =>
 					computeRoundScores(
 						round.results,
