@@ -36,18 +36,15 @@ advancePayments.post(
 	},
 );
 
-advancePayments.delete(
-	"/:groupId/advance-payments/:paymentId",
-	async (c) => {
-		const { groupId, paymentId } = c.req.param();
-		const db = drizzle(c.env.DB);
-		const repo = createAdvancePaymentRepository(db);
-		const result = await deleteAdvancePayment(repo, groupId, paymentId);
-		return result.match(
-			() => c.json({ success: true }),
-			(err) => c.json({ error: err.message }, err.status),
-		);
-	},
-);
+advancePayments.delete("/:groupId/advance-payments/:paymentId", async (c) => {
+	const { groupId, paymentId } = c.req.param();
+	const db = drizzle(c.env.DB);
+	const repo = createAdvancePaymentRepository(db);
+	const result = await deleteAdvancePayment(repo, groupId, paymentId);
+	return result.match(
+		() => c.json({ success: true }),
+		(err) => c.json({ error: err.message }, err.status),
+	);
+});
 
 export default advancePayments;

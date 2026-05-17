@@ -45,7 +45,14 @@ export function createRoundRepository(db: Db): RoundRepository {
 			);
 		},
 
-		createRound({ roundId, groupId, roundNo, tobiKillerId, rankOrder, results }) {
+		createRound({
+			roundId,
+			groupId,
+			roundNo,
+			tobiKillerId,
+			rankOrder,
+			results,
+		}) {
 			return ResultAsync.fromPromise(
 				db
 					.batch([
