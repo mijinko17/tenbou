@@ -112,12 +112,12 @@
 	<h1 class="mb-6 text-2xl font-bold">グループ作成</h1>
 
 	{#if groupId}
-		<div class="rounded-lg border border-green-200 bg-green-50 p-4 space-y-4">
-			<p class="font-semibold text-green-800">グループを作成しました！</p>
+		<div class="rounded-lg border bg-card p-4 space-y-4">
+			<p class="font-semibold">グループを作成しました！</p>
 
 			<div class="space-y-1">
-				<p class="text-sm text-green-700">ダッシュボード:</p>
-				<p class="rounded bg-white border px-3 py-2 font-mono text-sm break-all">{dashboardUrl}</p>
+				<p class="text-sm text-muted-foreground">ダッシュボード:</p>
+				<p class="rounded border bg-muted px-3 py-2 font-mono text-sm break-all">{dashboardUrl}</p>
 			</div>
 
 			<div class="flex gap-2">
