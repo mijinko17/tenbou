@@ -1,6 +1,6 @@
-import { ResultAsync } from "neverthrow";
 import { eq, inArray } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/d1";
+import { ResultAsync } from "neverthrow";
 import * as schema from "../db/schema";
 import { AppError } from "../errors";
 import type { SettlementRepo } from "../services/settlement";
@@ -60,7 +60,10 @@ export function createSettlementRepository(db: Db): SettlementRepo {
 								: null,
 							results: allResults
 								.filter((r) => r.round_id === round.id)
-								.map((r) => ({ playerId: r.player_id, rawPoints: r.raw_points })),
+								.map((r) => ({
+									playerId: r.player_id,
+									rawPoints: r.raw_points,
+								})),
 						}));
 					}),
 				dbErr,

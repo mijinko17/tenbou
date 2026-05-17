@@ -9,12 +9,19 @@ type GroupRow = typeof schema.groups.$inferSelect;
 
 export type SettlementRepo = {
 	findGroup(groupId: string): ResultAsync<GroupRow | null, AppError>;
-	findPlayers(groupId: string): ResultAsync<{ id: string; name: string }[], AppError>;
+	findPlayers(
+		groupId: string,
+	): ResultAsync<{ id: string; name: string }[], AppError>;
 	findRoundsWithResults(groupId: string): ResultAsync<RoundData[], AppError>;
-	findChips(groupId: string): ResultAsync<{ playerId: string; count: number }[], AppError>;
+	findChips(
+		groupId: string,
+	): ResultAsync<{ playerId: string; count: number }[], AppError>;
 	findAdvancePayments(
 		groupId: string,
-	): ResultAsync<{ payer_id: string; beneficiary_ids: string; amount: number }[], AppError>;
+	): ResultAsync<
+		{ payer_id: string; beneficiary_ids: string; amount: number }[],
+		AppError
+	>;
 };
 
 export function getSettlement(

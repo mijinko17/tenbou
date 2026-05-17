@@ -1,6 +1,6 @@
-import { ResultAsync } from "neverthrow";
 import { and, eq } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/d1";
+import { ResultAsync } from "neverthrow";
 import * as schema from "../db/schema";
 import { AppError } from "../errors";
 import type { AdvancePaymentRepo } from "../services/advance-payments";
@@ -34,7 +34,15 @@ export function createAdvancePaymentRepository(db: Db): AdvancePaymentRepo {
 			);
 		},
 
-		createPayment({ id, groupId, payerId, beneficiaryIds, description, amount, createdAt }) {
+		createPayment({
+			id,
+			groupId,
+			payerId,
+			beneficiaryIds,
+			description,
+			amount,
+			createdAt,
+		}) {
 			return ResultAsync.fromPromise(
 				db
 					.insert(schema.advance_payments)

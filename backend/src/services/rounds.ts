@@ -21,7 +21,10 @@ export type RoundRepo = {
 			rawPoints: number;
 		}[];
 	}): ResultAsync<void, AppError>;
-	findRound(groupId: string, roundId: string): ResultAsync<{ id: string } | null, AppError>;
+	findRound(
+		groupId: string,
+		roundId: string,
+	): ResultAsync<{ id: string } | null, AppError>;
 	deleteRound(roundId: string): ResultAsync<void, AppError>;
 };
 

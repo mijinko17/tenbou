@@ -1,6 +1,6 @@
-import { ResultAsync } from "neverthrow";
 import { and, eq, inArray } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/d1";
+import { ResultAsync } from "neverthrow";
 import * as schema from "../db/schema";
 import { AppError } from "../errors";
 import type { GroupRepo } from "../services/groups";
@@ -11,7 +11,17 @@ const dbErr = (e: unknown) => new AppError(String(e), 500);
 
 export function createGroupRepository(db: Db): GroupRepo {
 	return {
-		createGroup({ groupId, name, rate, chipRate, uma, tobi, genten, kaeshi, players }) {
+		createGroup({
+			groupId,
+			name,
+			rate,
+			chipRate,
+			uma,
+			tobi,
+			genten,
+			kaeshi,
+			players,
+		}) {
 			return ResultAsync.fromPromise(
 				db
 					.batch([
@@ -91,7 +101,10 @@ export function createGroupRepository(db: Db): GroupRepo {
 								: null,
 							results: allResults
 								.filter((r) => r.round_id === round.id)
-								.map((r) => ({ playerId: r.player_id, rawPoints: r.raw_points })),
+								.map((r) => ({
+									playerId: r.player_id,
+									rawPoints: r.raw_points,
+								})),
 						}));
 					}),
 				dbErr,

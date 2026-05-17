@@ -36,10 +36,16 @@ export type GroupRepo = {
 		players: { id: string; name: string }[];
 	}): ResultAsync<void, AppError>;
 	findGroup(groupId: string): ResultAsync<GroupRow | null, AppError>;
-	findPlayers(groupId: string): ResultAsync<{ id: string; name: string }[], AppError>;
+	findPlayers(
+		groupId: string,
+	): ResultAsync<{ id: string; name: string }[], AppError>;
 	findRoundsWithResults(groupId: string): ResultAsync<RoundData[], AppError>;
-	findChips(groupId: string): ResultAsync<{ playerId: string; count: number }[], AppError>;
-	findAdvancePayments(groupId: string): ResultAsync<AdvancePaymentData[], AppError>;
+	findChips(
+		groupId: string,
+	): ResultAsync<{ playerId: string; count: number }[], AppError>;
+	findAdvancePayments(
+		groupId: string,
+	): ResultAsync<AdvancePaymentData[], AppError>;
 	findPlayerInGroup(
 		groupId: string,
 		playerId: string,

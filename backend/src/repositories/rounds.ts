@@ -1,6 +1,6 @@
-import { ResultAsync } from "neverthrow";
 import { and, eq, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/d1";
+import { ResultAsync } from "neverthrow";
 import * as schema from "../db/schema";
 import { AppError } from "../errors";
 import type { RoundRepo } from "../services/rounds";
@@ -45,7 +45,14 @@ export function createRoundRepository(db: Db): RoundRepo {
 			);
 		},
 
-		createRound({ roundId, groupId, roundNo, tobiKillerId, rankOrder, results }) {
+		createRound({
+			roundId,
+			groupId,
+			roundNo,
+			tobiKillerId,
+			rankOrder,
+			results,
+		}) {
 			return ResultAsync.fromPromise(
 				db
 					.batch([
