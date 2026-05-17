@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { AppError } from "./errors";
 import advancePayments from "./routes/advance-payments";
 import chips from "./routes/chips";
 import groups from "./routes/groups";
@@ -15,6 +16,13 @@ app.use(
 		credentials: true,
 	}),
 );
+
+app.onError((err, c) => {
+	if (err instanceof AppError) {
+		return c.json({ error: err.message }, err.status);
+	}
+	throw err;
+});
 
 app.get("/", (c) => c.json({ status: "ok" }));
 
