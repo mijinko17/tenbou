@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import { z } from "zod";
-import { createGroup, deletePlayer, getGroup } from "../application/groups";
+import { createGroup, getGroup } from "../application/groups";
 import { createGroupRepository } from "../infrastructure/repositories/group";
 import type { Env } from "../types";
 
@@ -45,17 +45,6 @@ groups.get("/:groupId", async (c) => {
 	const result = await getGroup(repo, c.req.param("groupId"));
 	return result.match(
 		(data) => c.json(data),
-		(err) => c.json({ error: err.message }, err.status),
-	);
-});
-
-groups.delete("/:groupId/players/:playerId", async (c) => {
-	const { groupId, playerId } = c.req.param();
-	const db = drizzle(c.env.DB);
-	const repo = createGroupRepository(db);
-	const result = await deletePlayer(repo, groupId, playerId);
-	return result.match(
-		() => c.json({ success: true }),
 		(err) => c.json({ error: err.message }, err.status),
 	);
 });

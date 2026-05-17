@@ -43,10 +43,4 @@ export type GroupRepository = {
 	findAdvancePayments(
 		groupId: string,
 	): ResultAsync<AdvancePaymentData[], AppError>;
-	findPlayerInGroup(
-		groupId: string,
-		playerId: string,
-	): ResultAsync<{ id: string } | null, AppError>;
-	countPlayers(groupId: string): ResultAsync<number, AppError>;
-	deletePlayer(playerId: string): ResultAsync<void, AppError>;
 };

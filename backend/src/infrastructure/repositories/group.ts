@@ -144,43 +144,5 @@ export function createGroupRepository(db: Db): GroupRepository {
 				dbErr,
 			);
 		},
-
-		findPlayerInGroup(groupId, playerId) {
-			return ResultAsync.fromPromise(
-				db
-					.select({ id: schema.players.id })
-					.from(schema.players)
-					.where(
-						and(
-							eq(schema.players.id, playerId),
-							eq(schema.players.group_id, groupId),
-						),
-					)
-					.limit(1)
-					.then(([player]) => player ?? null),
-				dbErr,
-			);
-		},
-
-		countPlayers(groupId) {
-			return ResultAsync.fromPromise(
-				db
-					.select({ id: schema.players.id })
-					.from(schema.players)
-					.where(eq(schema.players.group_id, groupId))
-					.then((players) => players.length),
-				dbErr,
-			);
-		},
-
-		deletePlayer(playerId) {
-			return ResultAsync.fromPromise(
-				db
-					.delete(schema.players)
-					.where(eq(schema.players.id, playerId))
-					.then(() => undefined),
-				dbErr,
-			);
-		},
 	};
 }

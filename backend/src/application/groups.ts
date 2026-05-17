@@ -92,27 +92,3 @@ export function getGroup(
 			})),
 		);
 }
-
-export function deletePlayer(
-	repo: GroupRepository,
-	groupId: string,
-	playerId: string,
-): ResultAsync<void, AppError> {
-	return repo
-		.findPlayerInGroup(groupId, playerId)
-		.andThen((player) =>
-			player ? ok(undefined) : err(new AppError("Player not found", 404)),
-		)
-		.andThen(() => repo.countPlayers(groupId))
-		.andThen((count) =>
-			count <= 4
-				? err(
-						new AppError(
-							"Cannot delete: group must have at least 4 players",
-							409,
-						),
-					)
-				: ok(undefined),
-		)
-		.andThen(() => repo.deletePlayer(playerId));
-}
