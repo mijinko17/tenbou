@@ -24,20 +24,21 @@ advancePayments.post(
 	async (c) => {
 		const db = drizzle(c.env.DB);
 		const repo = createAdvancePaymentRepository(db);
-		await createAdvancePayment(repo, c.req.param("groupId"), c.req.valid("json"));
+		await createAdvancePayment(
+			repo,
+			c.req.param("groupId"),
+			c.req.valid("json"),
+		);
 		return c.json({ success: true }, 201);
 	},
 );
 
-advancePayments.delete(
-	"/:groupId/advance-payments/:paymentId",
-	async (c) => {
-		const { groupId, paymentId } = c.req.param();
-		const db = drizzle(c.env.DB);
-		const repo = createAdvancePaymentRepository(db);
-		await deleteAdvancePayment(repo, groupId, paymentId);
-		return c.json({ success: true });
-	},
-);
+advancePayments.delete("/:groupId/advance-payments/:paymentId", async (c) => {
+	const { groupId, paymentId } = c.req.param();
+	const db = drizzle(c.env.DB);
+	const repo = createAdvancePaymentRepository(db);
+	await deleteAdvancePayment(repo, groupId, paymentId);
+	return c.json({ success: true });
+});
 
 export default advancePayments;

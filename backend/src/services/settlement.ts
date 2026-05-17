@@ -16,10 +16,7 @@ export type SettlementRepo = {
 	): Promise<{ payer_id: string; beneficiary_ids: string; amount: number }[]>;
 };
 
-export async function getSettlement(
-	repo: SettlementRepo,
-	groupId: string,
-) {
+export async function getSettlement(repo: SettlementRepo, groupId: string) {
 	const group = await repo.findGroup(groupId);
 	if (!group) throw new AppError("Group not found", 404);
 

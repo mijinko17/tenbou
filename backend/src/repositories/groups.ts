@@ -7,7 +7,17 @@ type Db = ReturnType<typeof drizzle>;
 
 export function createGroupRepository(db: Db): GroupRepo {
 	return {
-		async createGroup({ groupId, name, rate, chipRate, uma, tobi, genten, kaeshi, players }) {
+		async createGroup({
+			groupId,
+			name,
+			rate,
+			chipRate,
+			uma,
+			tobi,
+			genten,
+			kaeshi,
+			players,
+		}) {
 			await db.batch([
 				db.insert(schema.groups).values({
 					id: groupId,

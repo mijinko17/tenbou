@@ -24,7 +24,15 @@ export function createAdvancePaymentRepository(db: Db): AdvancePaymentRepo {
 			return players.map((p) => p.id);
 		},
 
-		async createPayment({ id, groupId, payerId, beneficiaryIds, description, amount, createdAt }) {
+		async createPayment({
+			id,
+			groupId,
+			payerId,
+			beneficiaryIds,
+			description,
+			amount,
+			createdAt,
+		}) {
 			await db.insert(schema.advance_payments).values({
 				id,
 				group_id: groupId,

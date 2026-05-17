@@ -32,7 +32,14 @@ export function createRoundRepository(db: Db): RoundRepo {
 			return count ?? 0;
 		},
 
-		async createRound({ roundId, groupId, roundNo, tobiKillerId, rankOrder, results }) {
+		async createRound({
+			roundId,
+			groupId,
+			roundNo,
+			tobiKillerId,
+			rankOrder,
+			results,
+		}) {
 			await db.batch([
 				db.insert(schema.game_rounds).values({
 					id: roundId,

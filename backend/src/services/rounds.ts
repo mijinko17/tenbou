@@ -13,7 +13,12 @@ export type RoundRepo = {
 		roundNo: number;
 		tobiKillerId: string | null;
 		rankOrder: string[] | null;
-		results: { id: string; roundId: string; playerId: string; rawPoints: number }[];
+		results: {
+			id: string;
+			roundId: string;
+			playerId: string;
+			rawPoints: number;
+		}[];
 	}): Promise<void>;
 	findRound(groupId: string, roundId: string): Promise<{ id: string } | null>;
 	deleteRound(roundId: string): Promise<void>;

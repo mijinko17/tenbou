@@ -152,7 +152,11 @@ describe("deleteRound", () => {
 
 	it("正常に削除する", async () => {
 		let deleted = false;
-		const repo = makeRepo({ deleteRound: async () => { deleted = true; } });
+		const repo = makeRepo({
+			deleteRound: async () => {
+				deleted = true;
+			},
+		});
 		await deleteRound(repo, "g1", "r1");
 		expect(deleted).toBe(true);
 	});
