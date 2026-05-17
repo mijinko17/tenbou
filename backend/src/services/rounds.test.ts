@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AppError } from "../errors";
-import { createRound, deleteRound, type RoundRepo } from "./rounds";
+import { type RoundRepo, createRound, deleteRound } from "./rounds";
 
 const baseGroup = {
 	id: "g1",
