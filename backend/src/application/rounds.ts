@@ -1,4 +1,5 @@
 import { type ResultAsync, err, ok } from "neverthrow";
+import type { RoundRepository } from "../domain/repositories/round";
 import type { RoundInput } from "../domain/round";
 import {
 	validatePlayerIds,
@@ -6,7 +7,6 @@ import {
 	validateTies,
 	validateTobi,
 } from "../domain/round";
-import type { RoundRepository } from "../domain/repositories/round";
 import { AppError } from "../errors";
 
 export type CreateRoundInput = RoundInput;
