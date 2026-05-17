@@ -23,16 +23,26 @@ chips.put(
 	async (c) => {
 		const db = drizzle(c.env.DB);
 		const repo = createChipRepository(db);
-		await updateChips(repo, c.req.param("groupId"), c.req.valid("json"));
-		return c.json({ success: true });
+		const result = await updateChips(
+			repo,
+			c.req.param("groupId"),
+			c.req.valid("json"),
+		);
+		return result.match(
+			() => c.json({ success: true }),
+			(err) => c.json({ error: err.message }, err.status),
+		);
 	},
 );
 
 chips.delete("/:groupId/chips", async (c) => {
 	const db = drizzle(c.env.DB);
 	const repo = createChipRepository(db);
-	await resetChips(repo, c.req.param("groupId"));
-	return new Response(null, { status: 204 });
+	const result = await resetChips(repo, c.req.param("groupId"));
+	return result.match(
+		() => new Response(null, { status: 204 }),
+		(err) => c.json({ error: err.message }, err.status),
+	);
 });
 
 export default chips;

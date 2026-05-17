@@ -32,7 +32,10 @@ rounds.post(
 			c.req.param("groupId"),
 			c.req.valid("json"),
 		);
-		return c.json(result, 201);
+		return result.match(
+			(value) => c.json(value, 201),
+			(err) => c.json({ error: err.message }, err.status),
+		);
 	},
 );
 
@@ -40,8 +43,11 @@ rounds.delete("/:groupId/rounds/:roundId", async (c) => {
 	const { groupId, roundId } = c.req.param();
 	const db = drizzle(c.env.DB);
 	const repo = createRoundRepository(db);
-	await deleteRound(repo, groupId, roundId);
-	return new Response(null, { status: 204 });
+	const result = await deleteRound(repo, groupId, roundId);
+	return result.match(
+		() => new Response(null, { status: 204 }),
+		(err) => c.json({ error: err.message }, err.status),
+	);
 });
 
 export default rounds;

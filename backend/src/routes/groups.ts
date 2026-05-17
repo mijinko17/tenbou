@@ -32,23 +32,32 @@ const createGroupSchema = z.object({
 groups.post("/", zValidator("json", createGroupSchema), async (c) => {
 	const db = drizzle(c.env.DB);
 	const repo = createGroupRepository(db);
-	const { groupId } = await createGroup(repo, c.req.valid("json"));
-	return c.json({ groupId }, 201);
+	const result = await createGroup(repo, c.req.valid("json"));
+	return result.match(
+		({ groupId }) => c.json({ groupId }, 201),
+		(err) => c.json({ error: err.message }, err.status),
+	);
 });
 
 groups.get("/:groupId", async (c) => {
 	const db = drizzle(c.env.DB);
 	const repo = createGroupRepository(db);
-	const data = await getGroup(repo, c.req.param("groupId"));
-	return c.json(data);
+	const result = await getGroup(repo, c.req.param("groupId"));
+	return result.match(
+		(data) => c.json(data),
+		(err) => c.json({ error: err.message }, err.status),
+	);
 });
 
 groups.delete("/:groupId/players/:playerId", async (c) => {
 	const { groupId, playerId } = c.req.param();
 	const db = drizzle(c.env.DB);
 	const repo = createGroupRepository(db);
-	await deletePlayer(repo, groupId, playerId);
-	return c.json({ success: true });
+	const result = await deletePlayer(repo, groupId, playerId);
+	return result.match(
+		() => c.json({ success: true }),
+		(err) => c.json({ error: err.message }, err.status),
+	);
 });
 
 export default groups;
