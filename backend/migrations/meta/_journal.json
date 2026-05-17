@@ -43,6 +43,20 @@
       "when": 1778874401649,
       "tag": "0007_add_advance_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1779007648410,
+      "tag": "0008_remove_invite_tokens",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1779007863087,
+      "tag": "0009_remove_sessions",
+      "breakpoints": true
     }
   ]
 }

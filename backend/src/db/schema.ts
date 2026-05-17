@@ -25,23 +25,6 @@ export const players = sqliteTable("players", {
 	created_at: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 
-export const invite_tokens = sqliteTable("invite_tokens", {
-	token: text("token").primaryKey(),
-	group_id: text("group_id")
-		.notNull()
-		.references(() => groups.id),
-	expires_at: text("expires_at").notNull(),
-	created_at: text("created_at").notNull().default(sql`(datetime('now'))`),
-});
-
-export const sessions = sqliteTable("sessions", {
-	token: text("token").primaryKey(),
-	player_id: text("player_id")
-		.notNull()
-		.references(() => players.id),
-	expires_at: text("expires_at").notNull(),
-});
-
 export const game_rounds = sqliteTable("game_rounds", {
 	id: text("id").primaryKey(),
 	group_id: text("group_id")

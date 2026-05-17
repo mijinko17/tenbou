@@ -53,7 +53,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 		data: {
 			group: Group | null;
 			players: Player[];
-			currentPlayerId: string | null;
+
 			rounds: Round[];
 			chips: ChipEntry[];
 			advancePayments: AdvancePayment[];
@@ -507,7 +507,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 				<div class="space-y-3">
 					{#each data.players as player}
 						<div class="flex items-center gap-3">
-							<Label class="w-20 shrink-0 {player.id === data.currentPlayerId ? 'font-bold' : ''}">
+							<Label class="w-20 shrink-0">
 								{player.name}
 							</Label>
 							<InputGroup.Root class="flex-1">
@@ -629,7 +629,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 				<div class="mb-4 space-y-3">
 					{#each data.players as player}
 						<div class="flex items-center gap-3">
-							<Label class="w-20 shrink-0 {player.id === data.currentPlayerId ? 'font-bold' : ''}">
+							<Label class="w-20 shrink-0">
 								{player.name}
 							</Label>
 									<InputGroup.Root class="flex-1">
@@ -747,7 +747,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 							<Table.Head class="w-px text-muted-foreground">#</Table.Head>
 							{#each data.players as player}
 								<Table.Head
-									class="text-right {player.id === data.currentPlayerId ? 'text-primary' : ''}"
+									class="text-right"
 								>
 									{player.name}
 								</Table.Head>

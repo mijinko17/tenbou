@@ -10,7 +10,6 @@ export const load: PageLoad = async ({ params, fetch }) => {
 		return {
 			group: null,
 			players: [],
-			currentPlayerId: null,
 			rounds: [],
 			error: json.error ?? "エラーが発生しました",
 		};

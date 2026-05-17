@@ -97,15 +97,7 @@ describe("POST /groups", () => {
 			mockEnv,
 		);
 		expect(res.status).toBe(201);
-		const json = (await res.json()) as { groupId: string; inviteToken: string };
+		const json = (await res.json()) as { groupId: string };
 		expect(json.groupId).toMatch(/^[0-9a-f-]{36}$/);
-		expect(json.inviteToken).toMatch(/^[0-9a-f-]{36}$/);
-	});
-});
-
-describe("GET /invite/:token", () => {
-	it("returns 404 for unknown token", async () => {
-		const res = await app.request("/invite/nonexistent-token", {}, mockEnv);
-		expect(res.status).toBe(404);
 	});
 });

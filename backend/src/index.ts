@@ -1,8 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
-import { and, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
-import { getCookie, setCookie } from "hono/cookie";
 import { cors } from "hono/cors";
 import { z } from "zod";
 import * as schema from "./db/schema";
@@ -81,11 +80,7 @@ app.post("/groups", zValidator("json", createGroupSchema), async (c) => {
 	const db = drizzle(c.env.DB);
 
 	const groupId = crypto.randomUUID();
-	const inviteToken = crypto.randomUUID();
 	const playerIds = body.players.map(() => crypto.randomUUID());
-	const expiresAt = new Date(
-		Date.now() + 7 * 24 * 60 * 60 * 1000,
-	).toISOString();
 
 	await db.batch([
 		db.insert(schema.groups).values({
@@ -108,149 +103,15 @@ app.post("/groups", zValidator("json", createGroupSchema), async (c) => {
 				name: body.players[i],
 			}),
 		),
-		db.insert(schema.invite_tokens).values({
-			token: inviteToken,
-			group_id: groupId,
-			expires_at: expiresAt,
-		}),
 	] as Parameters<typeof db.batch>[0]);
 
-	return c.json({ groupId, inviteToken }, 201);
-});
-
-// GET /invite/:token
-app.get("/invite/:token", async (c) => {
-	const token = c.req.param("token");
-	const db = drizzle(c.env.DB);
-
-	const [invite] = await db
-		.select({
-			group_id: schema.invite_tokens.group_id,
-			expires_at: schema.invite_tokens.expires_at,
-		})
-		.from(schema.invite_tokens)
-		.where(eq(schema.invite_tokens.token, token))
-		.limit(1);
-
-	if (!invite) return c.json({ error: "Invalid token" }, 404);
-	if (new Date(invite.expires_at) < new Date())
-		return c.json({ error: "Token expired" }, 410);
-
-	const [group] = await db
-		.select()
-		.from(schema.groups)
-		.where(eq(schema.groups.id, invite.group_id))
-		.limit(1);
-
-	const players = await db
-		.select({ id: schema.players.id, name: schema.players.name })
-		.from(schema.players)
-		.where(eq(schema.players.group_id, invite.group_id))
-		.orderBy(schema.players.created_at);
-
-	return c.json({ group, players });
-});
-
-// POST /invite/:token
-const joinSchema = z.union([
-	z.object({ playerId: z.string().uuid() }),
-	z.object({ name: z.string().min(1).max(10) }),
-]);
-
-app.post("/invite/:token", zValidator("json", joinSchema), async (c) => {
-	const token = c.req.param("token");
-	const db = drizzle(c.env.DB);
-
-	const [invite] = await db
-		.select({
-			group_id: schema.invite_tokens.group_id,
-			expires_at: schema.invite_tokens.expires_at,
-		})
-		.from(schema.invite_tokens)
-		.where(eq(schema.invite_tokens.token, token))
-		.limit(1);
-
-	if (!invite) return c.json({ error: "Invalid token" }, 404);
-	if (new Date(invite.expires_at) < new Date())
-		return c.json({ error: "Token expired" }, 410);
-
-	const body = c.req.valid("json");
-	let playerId: string;
-
-	if ("playerId" in body) {
-		const [player] = await db
-			.select({ id: schema.players.id })
-			.from(schema.players)
-			.where(
-				and(
-					eq(schema.players.id, body.playerId),
-					eq(schema.players.group_id, invite.group_id),
-				),
-			)
-			.limit(1);
-		if (!player) return c.json({ error: "Player not found" }, 404);
-		playerId = body.playerId;
-	} else {
-		const existing = await db
-			.select({ id: schema.players.id })
-			.from(schema.players)
-			.where(eq(schema.players.group_id, invite.group_id));
-		if (existing.length >= 5) return c.json({ error: "Group is full" }, 409);
-
-		playerId = crypto.randomUUID();
-		await db.insert(schema.players).values({
-			id: playerId,
-			group_id: invite.group_id,
-			name: body.name,
-		});
-	}
-
-	const sessionToken = crypto.randomUUID();
-	const expiresAt = new Date(
-		Date.now() + 7 * 24 * 60 * 60 * 1000,
-	).toISOString();
-
-	await db
-		.insert(schema.sessions)
-		.values({ token: sessionToken, player_id: playerId, expires_at: expiresAt })
-		.onConflictDoUpdate({
-			target: schema.sessions.token,
-			set: { player_id: playerId, expires_at: expiresAt },
-		});
-
-	setCookie(c, "session", sessionToken, {
-		httpOnly: true,
-		secure: true,
-		sameSite: "Lax",
-		path: "/",
-		expires: new Date(expiresAt),
-	});
-
-	return c.json({ playerId, groupId: invite.group_id });
+	return c.json({ groupId }, 201);
 });
 
 // DELETE /groups/:groupId/players/:playerId
 app.delete("/groups/:groupId/players/:playerId", async (c) => {
 	const { groupId, playerId } = c.req.param();
 	const db = drizzle(c.env.DB);
-
-	const sessionToken = getCookie(c, "session");
-	if (!sessionToken) return c.json({ error: "Unauthorized" }, 401);
-
-	const [session] = await db
-		.select({ player_id: schema.sessions.player_id })
-		.from(schema.sessions)
-		.where(
-			and(
-				eq(schema.sessions.token, sessionToken),
-				gt(schema.sessions.expires_at, sql`datetime('now')`),
-			),
-		)
-		.limit(1);
-
-	if (!session) return c.json({ error: "Unauthorized" }, 401);
-	if (session.player_id !== playerId)
-		return c.json({ error: "Forbidden" }, 403);
 
 	const [player] = await db
 		.select({ id: schema.players.id })
@@ -275,10 +136,7 @@ app.delete("/groups/:groupId/players/:playerId", async (c) => {
 		);
 	}
 
-	await db.batch([
-		db.delete(schema.sessions).where(eq(schema.sessions.player_id, playerId)),
-		db.delete(schema.players).where(eq(schema.players.id, playerId)),
-	]);
+	await db.delete(schema.players).where(eq(schema.players.id, playerId));
 
 	return c.json({ success: true });
 });
@@ -364,7 +222,7 @@ app.get("/groups/:groupId", async (c) => {
 	return c.json({
 		group,
 		players,
-		currentPlayerId: null,
+
 		rounds: roundsWithScores,
 		chips: chipRows,
 		advancePayments,

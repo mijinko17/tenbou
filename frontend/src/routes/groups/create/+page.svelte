@@ -27,7 +27,6 @@
 	const kaeshi = $derived(kaeshiRaw * 1000);
 
 	let groupId = $state<string | null>(null);
-	let inviteToken = $state<string | null>(null);
 	let errorMsg = $state<string | null>(null);
 	let loading = $state(false);
 
@@ -39,9 +38,6 @@
 				: (umaCustom as [number, number, number, number]),
 	);
 
-	const inviteUrl = $derived(
-		inviteToken ? `${location.origin}/invite/${inviteToken}` : "",
-	);
 	const dashboardUrl = $derived(
 		groupId ? `${location.origin}/groups/${groupId}` : "",
 	);
@@ -86,7 +82,6 @@
 
 			const data = (await res.json()) as {
 				groupId?: string;
-				inviteToken?: string;
 				error?: string;
 			};
 			if (!res.ok) {
@@ -94,7 +89,6 @@
 				return;
 			}
 			groupId = data.groupId ?? null;
-			inviteToken = data.inviteToken ?? null;
 			if (data.groupId) {
 				const key = "tenbou_visited_groups";
 				const existing = JSON.parse(localStorage.getItem(key) ?? "[]") as { id: string; name: string }[];
@@ -111,9 +105,7 @@
 		}
 	}
 
-	async function copyLink() {
-		await navigator.clipboard.writeText(inviteUrl);
-	}
+
 </script>
 
 <main class="mx-auto max-w-lg px-4 py-8">
@@ -130,7 +122,7 @@
 
 			<div class="flex gap-2">
 				<Button onclick={() => goto(`/groups/${groupId}`)}>ダッシュボードへ</Button>
-				<Button variant="outline" onclick={copyLink}>招待リンクをコピー</Button>
+				<Button variant="outline" onclick={() => navigator.clipboard.writeText(dashboardUrl)}>リンクをコピー</Button>
 			</div>
 		</div>
 	{:else}
