@@ -1,58 +1,11 @@
 import { ResultAsync, err, ok } from "neverthrow";
-import type * as schema from "../db/schema";
+import type { Group } from "../domain/group";
+import type {
+	AdvancePaymentData,
+	GroupRepository,
+} from "../domain/repositories/group";
+import { computeRoundScores } from "../domain/score";
 import { AppError } from "../errors";
-import { computeRoundScores } from "../score";
-
-type GroupRow = typeof schema.groups.$inferSelect;
-
-export type RoundData = {
-	id: string;
-	roundNo: number;
-	playedAt: string;
-	tobiKillerId: string | null;
-	rankOrder: string[] | null;
-	results: { playerId: string; rawPoints: number }[];
-};
-
-export type AdvancePaymentData = {
-	id: string;
-	payerId: string;
-	beneficiaryIds: string[];
-	description: string;
-	amount: number;
-	createdAt: number;
-};
-
-export type GroupRepo = {
-	createGroup(data: {
-		groupId: string;
-		name: string;
-		rate: number;
-		chipRate: number;
-		uma: [number, number, number, number];
-		tobi: number;
-		genten: number;
-		kaeshi: number;
-		players: { id: string; name: string }[];
-	}): ResultAsync<void, AppError>;
-	findGroup(groupId: string): ResultAsync<GroupRow | null, AppError>;
-	findPlayers(
-		groupId: string,
-	): ResultAsync<{ id: string; name: string }[], AppError>;
-	findRoundsWithResults(groupId: string): ResultAsync<RoundData[], AppError>;
-	findChips(
-		groupId: string,
-	): ResultAsync<{ playerId: string; count: number }[], AppError>;
-	findAdvancePayments(
-		groupId: string,
-	): ResultAsync<AdvancePaymentData[], AppError>;
-	findPlayerInGroup(
-		groupId: string,
-		playerId: string,
-	): ResultAsync<{ id: string } | null, AppError>;
-	countPlayers(groupId: string): ResultAsync<number, AppError>;
-	deletePlayer(playerId: string): ResultAsync<void, AppError>;
-};
 
 export type CreateGroupInput = {
 	name: string;
@@ -66,7 +19,7 @@ export type CreateGroupInput = {
 };
 
 export function createGroup(
-	repo: GroupRepo,
+	repo: GroupRepository,
 	input: CreateGroupInput,
 ): ResultAsync<{ groupId: string }, AppError> {
 	const groupId = crypto.randomUUID();
@@ -90,11 +43,11 @@ export function createGroup(
 }
 
 export function getGroup(
-	repo: GroupRepo,
+	repo: GroupRepository,
 	groupId: string,
 ): ResultAsync<
 	{
-		group: GroupRow;
+		group: Group;
 		players: { id: string; name: string }[];
 		rounds: {
 			id: string;
@@ -141,7 +94,7 @@ export function getGroup(
 }
 
 export function deletePlayer(
-	repo: GroupRepo,
+	repo: GroupRepository,
 	groupId: string,
 	playerId: string,
 ): ResultAsync<void, AppError> {

@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
-import { createSettlementRepository } from "../repositories/settlement";
-import { getSettlement } from "../services/settlement";
+import { getSettlement } from "../application/settlement";
+import { createSettlementRepository } from "../infrastructure/repositories/settlement";
 import type { Env } from "../types";
 
 const settlement = new Hono<{ Bindings: Env }>();

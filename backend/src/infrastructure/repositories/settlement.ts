@@ -1,15 +1,15 @@
 import { eq, inArray } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/d1";
 import { ResultAsync } from "neverthrow";
+import type { SettlementRepository } from "../../domain/repositories/settlement";
+import { AppError } from "../../errors";
 import * as schema from "../db/schema";
-import { AppError } from "../errors";
-import type { SettlementRepo } from "../services/settlement";
 
 type Db = ReturnType<typeof drizzle>;
 
 const dbErr = (e: unknown) => new AppError(String(e), 500);
 
-export function createSettlementRepository(db: Db): SettlementRepo {
+export function createSettlementRepository(db: Db): SettlementRepository {
 	return {
 		findGroup(groupId) {
 			return ResultAsync.fromPromise(

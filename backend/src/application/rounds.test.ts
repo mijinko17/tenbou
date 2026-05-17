@@ -1,7 +1,8 @@
 import { okAsync } from "neverthrow";
 import { describe, expect, it } from "vitest";
+import type { RoundRepository } from "../domain/repositories/round";
 import { AppError } from "../errors";
-import { type RoundRepo, createRound, deleteRound } from "./rounds";
+import { createRound, deleteRound } from "./rounds";
 
 const baseGroup = {
 	id: "g1",
@@ -20,7 +21,7 @@ const baseGroup = {
 
 const playerIds = ["p1", "p2", "p3", "p4"];
 
-function makeRepo(overrides?: Partial<RoundRepo>): RoundRepo {
+function makeRepo(overrides?: Partial<RoundRepository>): RoundRepository {
 	return {
 		findGroup: () => okAsync(baseGroup),
 		findPlayerIds: () => okAsync(playerIds),

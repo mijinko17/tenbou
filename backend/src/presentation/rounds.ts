@@ -2,8 +2,8 @@ import { zValidator } from "@hono/zod-validator";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import { z } from "zod";
-import { createRoundRepository } from "../repositories/rounds";
-import { createRound, deleteRound } from "../services/rounds";
+import { createRound, deleteRound } from "../application/rounds";
+import { createRoundRepository } from "../infrastructure/repositories/round";
 import type { Env } from "../types";
 
 const rounds = new Hono<{ Bindings: Env }>();

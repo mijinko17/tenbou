@@ -2,8 +2,8 @@ import { zValidator } from "@hono/zod-validator";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import { z } from "zod";
-import { createGroupRepository } from "../repositories/groups";
-import { createGroup, deletePlayer, getGroup } from "../services/groups";
+import { createGroup, deletePlayer, getGroup } from "../application/groups";
+import { createGroupRepository } from "../infrastructure/repositories/group";
 import type { Env } from "../types";
 
 const groups = new Hono<{ Bindings: Env }>();

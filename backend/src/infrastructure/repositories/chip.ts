@@ -1,15 +1,15 @@
 import { eq } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/d1";
 import { ResultAsync } from "neverthrow";
+import type { ChipRepository } from "../../domain/repositories/chip";
+import { AppError } from "../../errors";
 import * as schema from "../db/schema";
-import { AppError } from "../errors";
-import type { ChipRepo } from "../services/chips";
 
 type Db = ReturnType<typeof drizzle>;
 
 const dbErr = (e: unknown) => new AppError(String(e), 500);
 
-export function createChipRepository(db: Db): ChipRepo {
+export function createChipRepository(db: Db): ChipRepository {
 	return {
 		findGroup(groupId) {
 			return ResultAsync.fromPromise(

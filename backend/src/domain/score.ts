@@ -1,6 +1,4 @@
-import type * as schema from "./db/schema";
-
-type Group = typeof schema.groups.$inferSelect;
+import type { Group } from "./group";
 
 export function computeRoundScores(
 	results: { playerId: string; rawPoints: number }[],

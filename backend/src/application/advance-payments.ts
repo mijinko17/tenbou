@@ -1,24 +1,6 @@
 import { type ResultAsync, err, ok } from "neverthrow";
+import type { AdvancePaymentRepository } from "../domain/repositories/advance-payment";
 import { AppError } from "../errors";
-
-export type AdvancePaymentRepo = {
-	findGroup(groupId: string): ResultAsync<{ id: string } | null, AppError>;
-	findPlayerIds(groupId: string): ResultAsync<string[], AppError>;
-	createPayment(data: {
-		id: string;
-		groupId: string;
-		payerId: string;
-		beneficiaryIds: string[];
-		description: string;
-		amount: number;
-		createdAt: number;
-	}): ResultAsync<void, AppError>;
-	findPayment(
-		groupId: string,
-		paymentId: string,
-	): ResultAsync<{ id: string } | null, AppError>;
-	deletePayment(paymentId: string): ResultAsync<void, AppError>;
-};
 
 export type CreateAdvancePaymentInput = {
 	payerId: string;
@@ -28,7 +10,7 @@ export type CreateAdvancePaymentInput = {
 };
 
 export function createAdvancePayment(
-	repo: AdvancePaymentRepo,
+	repo: AdvancePaymentRepository,
 	groupId: string,
 	input: CreateAdvancePaymentInput,
 ): ResultAsync<void, AppError> {
@@ -69,7 +51,7 @@ export function createAdvancePayment(
 }
 
 export function deleteAdvancePayment(
-	repo: AdvancePaymentRepo,
+	repo: AdvancePaymentRepository,
 	groupId: string,
 	paymentId: string,
 ): ResultAsync<void, AppError> {

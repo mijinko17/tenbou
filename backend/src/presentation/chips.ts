@@ -2,8 +2,8 @@ import { zValidator } from "@hono/zod-validator";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import { z } from "zod";
-import { createChipRepository } from "../repositories/chips";
-import { resetChips, updateChips } from "../services/chips";
+import { resetChips, updateChips } from "../application/chips";
+import { createChipRepository } from "../infrastructure/repositories/chip";
 import type { Env } from "../types";
 
 const chips = new Hono<{ Bindings: Env }>();

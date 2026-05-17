@@ -1,22 +1,13 @@
 import { type ResultAsync, err, ok } from "neverthrow";
+import type { ChipRepository } from "../domain/repositories/chip";
 import { AppError } from "../errors";
-
-export type ChipRepo = {
-	findGroup(groupId: string): ResultAsync<{ id: string } | null, AppError>;
-	findPlayerIds(groupId: string): ResultAsync<string[], AppError>;
-	upsertChips(
-		groupId: string,
-		chips: { playerId: string; count: number }[],
-	): ResultAsync<void, AppError>;
-	deleteChips(groupId: string): ResultAsync<void, AppError>;
-};
 
 export type UpdateChipsInput = {
 	chips: { playerId: string; count: number }[];
 };
 
 export function updateChips(
-	repo: ChipRepo,
+	repo: ChipRepository,
 	groupId: string,
 	input: UpdateChipsInput,
 ): ResultAsync<void, AppError> {
@@ -43,7 +34,7 @@ export function updateChips(
 }
 
 export function resetChips(
-	repo: ChipRepo,
+	repo: ChipRepository,
 	groupId: string,
 ): ResultAsync<void, AppError> {
 	return repo

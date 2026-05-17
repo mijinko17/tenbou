@@ -1,32 +1,7 @@
 import { type Result, type ResultAsync, err, ok } from "neverthrow";
-import type * as schema from "../db/schema";
+import type { Group } from "../domain/group";
+import type { RoundRepository } from "../domain/repositories/round";
 import { AppError } from "../errors";
-
-type GroupRow = typeof schema.groups.$inferSelect;
-
-export type RoundRepo = {
-	findGroup(groupId: string): ResultAsync<GroupRow | null, AppError>;
-	findPlayerIds(groupId: string): ResultAsync<string[], AppError>;
-	countRounds(groupId: string): ResultAsync<number, AppError>;
-	createRound(data: {
-		roundId: string;
-		groupId: string;
-		roundNo: number;
-		tobiKillerId: string | null;
-		rankOrder: string[] | null;
-		results: {
-			id: string;
-			roundId: string;
-			playerId: string;
-			rawPoints: number;
-		}[];
-	}): ResultAsync<void, AppError>;
-	findRound(
-		groupId: string,
-		roundId: string,
-	): ResultAsync<{ id: string } | null, AppError>;
-	deleteRound(roundId: string): ResultAsync<void, AppError>;
-};
 
 export type CreateRoundInput = {
 	results: { playerId: string; rawPoints: number }[];
@@ -35,7 +10,7 @@ export type CreateRoundInput = {
 };
 
 function validateSum(
-	group: GroupRow,
+	group: Group,
 	results: { rawPoints: number }[],
 ): Result<void, AppError> {
 	const expectedSum = group.genten * 4;
@@ -124,7 +99,7 @@ function validateTobi(
 }
 
 export function createRound(
-	repo: RoundRepo,
+	repo: RoundRepository,
 	groupId: string,
 	input: CreateRoundInput,
 ): ResultAsync<{ roundId: string; roundNo: number }, AppError> {
@@ -164,7 +139,7 @@ export function createRound(
 }
 
 export function deleteRound(
-	repo: RoundRepo,
+	repo: RoundRepository,
 	groupId: string,
 	roundId: string,
 ): ResultAsync<void, AppError> {

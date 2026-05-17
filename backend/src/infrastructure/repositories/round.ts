@@ -1,15 +1,15 @@
 import { and, eq, sql } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/d1";
 import { ResultAsync } from "neverthrow";
+import type { RoundRepository } from "../../domain/repositories/round";
+import { AppError } from "../../errors";
 import * as schema from "../db/schema";
-import { AppError } from "../errors";
-import type { RoundRepo } from "../services/rounds";
 
 type Db = ReturnType<typeof drizzle>;
 
 const dbErr = (e: unknown) => new AppError(String(e), 500);
 
-export function createRoundRepository(db: Db): RoundRepo {
+export function createRoundRepository(db: Db): RoundRepository {
 	return {
 		findGroup(groupId) {
 			return ResultAsync.fromPromise(
@@ -45,14 +45,7 @@ export function createRoundRepository(db: Db): RoundRepo {
 			);
 		},
 
-		createRound({
-			roundId,
-			groupId,
-			roundNo,
-			tobiKillerId,
-			rankOrder,
-			results,
-		}) {
+		createRound({ roundId, groupId, roundNo, tobiKillerId, rankOrder, results }) {
 			return ResultAsync.fromPromise(
 				db
 					.batch([

@@ -1,31 +1,11 @@
 import { ResultAsync, err, ok } from "neverthrow";
-import type * as schema from "../db/schema";
+import type { SettlementRepository } from "../domain/repositories/settlement";
+import { computeRoundScores } from "../domain/score";
+import { computeSettlement } from "../domain/settlement";
 import { AppError } from "../errors";
-import { computeRoundScores } from "../score";
-import { computeSettlement } from "../settlement";
-import type { RoundData } from "./groups";
-
-type GroupRow = typeof schema.groups.$inferSelect;
-
-export type SettlementRepo = {
-	findGroup(groupId: string): ResultAsync<GroupRow | null, AppError>;
-	findPlayers(
-		groupId: string,
-	): ResultAsync<{ id: string; name: string }[], AppError>;
-	findRoundsWithResults(groupId: string): ResultAsync<RoundData[], AppError>;
-	findChips(
-		groupId: string,
-	): ResultAsync<{ playerId: string; count: number }[], AppError>;
-	findAdvancePayments(
-		groupId: string,
-	): ResultAsync<
-		{ payer_id: string; beneficiary_ids: string; amount: number }[],
-		AppError
-	>;
-};
 
 export function getSettlement(
-	repo: SettlementRepo,
+	repo: SettlementRepository,
 	groupId: string,
 ): ResultAsync<
 	ReturnType<typeof computeSettlement> & {

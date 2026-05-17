@@ -2,11 +2,11 @@ import { zValidator } from "@hono/zod-validator";
 import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import { z } from "zod";
-import { createAdvancePaymentRepository } from "../repositories/advance-payments";
 import {
 	createAdvancePayment,
 	deleteAdvancePayment,
-} from "../services/advance-payments";
+} from "../application/advance-payments";
+import { createAdvancePaymentRepository } from "../infrastructure/repositories/advance-payment";
 import type { Env } from "../types";
 
 const advancePayments = new Hono<{ Bindings: Env }>();
@@ -36,15 +36,18 @@ advancePayments.post(
 	},
 );
 
-advancePayments.delete("/:groupId/advance-payments/:paymentId", async (c) => {
-	const { groupId, paymentId } = c.req.param();
-	const db = drizzle(c.env.DB);
-	const repo = createAdvancePaymentRepository(db);
-	const result = await deleteAdvancePayment(repo, groupId, paymentId);
-	return result.match(
-		() => c.json({ success: true }),
-		(err) => c.json({ error: err.message }, err.status),
-	);
-});
+advancePayments.delete(
+	"/:groupId/advance-payments/:paymentId",
+	async (c) => {
+		const { groupId, paymentId } = c.req.param();
+		const db = drizzle(c.env.DB);
+		const repo = createAdvancePaymentRepository(db);
+		const result = await deleteAdvancePayment(repo, groupId, paymentId);
+		return result.match(
+			() => c.json({ success: true }),
+			(err) => c.json({ error: err.message }, err.status),
+		);
+	},
+);
 
 export default advancePayments;
