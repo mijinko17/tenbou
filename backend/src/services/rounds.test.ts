@@ -125,11 +125,11 @@ describe("createRound", () => {
 	});
 
 	it("正常な入力でroundIdとroundNoを返す", async () => {
-		let savedData: Parameters<RoundRepo["createRound"]>[0] | null = null;
+		let savedResultsLength: number | null = null;
 		const repo = makeRepo({
 			countRounds: async () => 2,
 			createRound: async (data) => {
-				savedData = data;
+				savedResultsLength = data.results.length;
 			},
 		});
 
@@ -137,8 +137,7 @@ describe("createRound", () => {
 
 		expect(result.roundId).toMatch(/^[0-9a-f-]{36}$/);
 		expect(result.roundNo).toBe(3);
-		expect(savedData).not.toBeNull();
-		expect(savedData?.results).toHaveLength(4);
+		expect(savedResultsLength).toBe(4);
 	});
 });
 

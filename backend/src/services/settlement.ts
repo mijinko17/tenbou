@@ -1,8 +1,8 @@
+import type * as schema from "../db/schema";
 import { AppError } from "../errors";
 import { computeRoundScores } from "../score";
 import { computeSettlement } from "../settlement";
 import type { RoundData } from "./groups";
-import type * as schema from "../db/schema";
 
 type GroupRow = typeof schema.groups.$inferSelect;
 

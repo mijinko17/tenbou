@@ -1,5 +1,5 @@
-import { AppError } from "../errors";
 import type * as schema from "../db/schema";
+import { AppError } from "../errors";
 
 type GroupRow = typeof schema.groups.$inferSelect;
 

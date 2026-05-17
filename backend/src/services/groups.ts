@@ -1,6 +1,6 @@
+import type * as schema from "../db/schema";
 import { AppError } from "../errors";
 import { computeRoundScores } from "../score";
-import type * as schema from "../db/schema";
 
 type GroupRow = typeof schema.groups.$inferSelect;
 
