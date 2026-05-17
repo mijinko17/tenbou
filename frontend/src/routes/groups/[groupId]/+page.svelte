@@ -646,7 +646,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 									type="number"
 									bind:value={rawPointInputs[player.id]}
 									oninput={(e) => handleScoreInput(player.id, e)}
-									class=""
+									class="md:translate-y-px"
 								/>
 								<InputGroup.Addon align="inline-end">点</InputGroup.Addon>
 							</InputGroup.Root>

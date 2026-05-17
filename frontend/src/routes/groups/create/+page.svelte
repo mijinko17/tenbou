@@ -11,7 +11,10 @@
 	let groupName = $state("");
 	let players = $state(["", "", "", ""]);
 	let rate = $state(50);
-	let chipRate = $state(2000);
+	let chipRateRaw = $state(2);
+	let chipRateDisplay = $state("2");
+	let chipRatePartial = $state(false);
+	const chipRate = $derived(chipRateRaw * 1000);
 	let umaPreset = $state<"10-20" | "10-30" | "custom">("10-20");
 	let umaCustom = $state([20, 10, -10, -20]);
 	let tobi = $state(10);
@@ -164,8 +167,22 @@
 			<div class="space-y-1.5">
 				<Label for="chip-rate">チップ</Label>
 				<InputGroup>
-					<InputGroupAddon>1枚 =</InputGroupAddon>
-					<InputGroupInput id="chip-rate" bind:value={chipRate} type="number" min={1} required />
+					<div class="pointer-events-none absolute inset-0 flex items-center pl-2.5 text-base md:translate-y-px md:text-sm">
+						{#if chipRateDisplay}
+							<span class="invisible">{chipRateDisplay}</span><span class="text-muted-foreground">000</span>
+						{:else if !chipRatePartial}
+							<span class="text-muted-foreground/60">例: 2</span><span class="text-muted-foreground/40">000</span>
+						{/if}
+					</div>
+					<InputGroupInput
+						id="chip-rate"
+						bind:value={chipRateRaw}
+						type="number"
+						min={1}
+						required
+						class="md:translate-y-px"
+						oninput={(e) => handleThousandInput(e, (v) => (chipRateDisplay = v), (v) => (chipRatePartial = v))}
+					/>
 					<InputGroupAddon align="inline-end">点</InputGroupAddon>
 				</InputGroup>
 			</div>
@@ -186,6 +203,7 @@
 						type="number"
 						min={1}
 						required
+						class="md:translate-y-px"
 						oninput={(e) => handleThousandInput(e, (v) => (gentenDisplay = v), (v) => (gentenPartial = v))}
 					/>
 					<InputGroupAddon align="inline-end">点</InputGroupAddon>
@@ -208,6 +226,7 @@
 						type="number"
 						min={1}
 						required
+						class="md:translate-y-px"
 						oninput={(e) => handleThousandInput(e, (v) => (kaeshiDisplay = v), (v) => (kaeshiPartial = v))}
 					/>
 					<InputGroupAddon align="inline-end">点</InputGroupAddon>
