@@ -499,7 +499,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 
 		<!-- チップ入力ダイアログ -->
 		<Dialog.Root bind:open={showChipForm}>
-			<Dialog.Content class="max-h-[90dvh] overflow-y-auto">
+			<Dialog.Content class="max-h-[90dvh] overflow-y-auto" interactOutsideBehavior="ignore">
 				<Dialog.Header>
 					<Dialog.Title>チップ登録</Dialog.Title>
 				</Dialog.Header>
@@ -546,7 +546,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 
 		<!-- 立替登録ダイアログ -->
 		<Dialog.Root bind:open={showAdvanceForm}>
-			<Dialog.Content class="max-h-[90dvh] overflow-y-auto">
+			<Dialog.Content class="max-h-[90dvh] overflow-y-auto" interactOutsideBehavior="ignore">
 				<Dialog.Header>
 					<Dialog.Title>立替登録</Dialog.Title>
 				</Dialog.Header>
@@ -620,7 +620,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 
 		<!-- 成績登録ダイアログ -->
 		<Dialog.Root bind:open={showForm}>
-			<Dialog.Content class="max-h-[90dvh] overflow-y-auto">
+			<Dialog.Content class="max-h-[90dvh] overflow-y-auto" interactOutsideBehavior="ignore">
 				<Dialog.Header>
 					<Dialog.Title>成績登録</Dialog.Title>
 				</Dialog.Header>
