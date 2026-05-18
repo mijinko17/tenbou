@@ -507,7 +507,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 				<div class="space-y-3">
 					{#each data.players as player}
 						<div class="flex items-center gap-3">
-							<Label class="w-20 shrink-0">
+							<Label class="w-20 shrink-0 font-normal">
 								{player.name}
 							</Label>
 							<InputGroup.Root class="flex-1">
@@ -625,11 +625,10 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 					<Dialog.Title>成績登録</Dialog.Title>
 				</Dialog.Header>
 
-				<Label class="mb-2 block text-base font-semibold">点数</Label>
-				<div class="mb-4 space-y-3">
+				<div class="space-y-3">
 					{#each data.players as player}
 						<div class="flex items-center gap-3">
-							<Label class="w-20 shrink-0">
+							<Label class="w-20 shrink-0 font-normal">
 								{player.name}
 							</Label>
 									<InputGroup.Root class="flex-1">
@@ -654,7 +653,7 @@ import { Alert, AlertDescription } from "$lib/components/ui/alert";
 					{/each}
 				</div>
 
-				<p class="mb-4 text-sm {sumOk ? 'text-green-600' : 'text-muted-foreground'}">
+				<p class="text-sm {sumOk ? 'text-green-600' : 'text-muted-foreground'}">
 					合計: {pointsSum} / {expectedSum}
 					{#if sumOk}✓{/if}
 				</p>
