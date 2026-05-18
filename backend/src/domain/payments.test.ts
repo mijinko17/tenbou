@@ -109,5 +109,4 @@ describe("minimizePayments", () => {
 			expect(netBalance(payments, playerId)).toBe(balance);
 		}
 	});
-
 });
