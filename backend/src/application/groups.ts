@@ -1,4 +1,4 @@
-import { ResultAsync, err, ok } from "neverthrow";
+import { ResultAsync, err, errAsync, ok } from "neverthrow";
 import type { Group } from "../domain/group";
 import type {
 	AdvancePaymentData,
@@ -22,6 +22,10 @@ export function createGroup(
 	repo: GroupRepository,
 	input: CreateGroupInput,
 ): ResultAsync<{ groupId: string }, AppError> {
+	const umaSum = input.uma.reduce((s, v) => s + v, 0);
+	if (umaSum !== 0) {
+		return errAsync(new AppError("ウマの合計は0である必要があります"));
+	}
 	const groupId = crypto.randomUUID();
 	const players = input.players.map((name) => ({
 		id: crypto.randomUUID(),
