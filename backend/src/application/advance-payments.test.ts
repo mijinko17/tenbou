@@ -70,7 +70,8 @@ describe("createAdvancePayment", () => {
 	});
 
 	it("正常な入力でcreatePaymentを呼び出す", async () => {
-		const calls: Parameters<AdvancePaymentRepository["createPayment"]>[0][] = [];
+		const calls: Parameters<AdvancePaymentRepository["createPayment"]>[0][] =
+			[];
 		const repo = makeRepo({
 			createPayment: (data) => {
 				calls.push(data);
